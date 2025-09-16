@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import React, { useState } from "react"
-import PropTypes from "prop-types"
-import { motion } from "framer-motion"
+import React, { useState } from "react";
+import PropTypes from "prop-types";
+import { motion } from "framer-motion";
 
 const ManualInputModal = ({ onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -12,70 +12,75 @@ const ManualInputModal = ({ onClose, onSubmit }) => {
     width: "",
     height: "",
     weight: "",
-  })
+  });
 
-  const [errors, setErrors] = useState({})
+  const [errors, setErrors] = useState({});
 
-  const gates = ["GATE-001", "GATE-002", "GATE-003", "GATE-004", "GATE-005"]
+  const gates = ["GATE-001", "GATE-002", "GATE-003", "GATE-004", "GATE-005"];
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
-      onClose()
+      onClose();
     }
-  }
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === "Escape") {
-      onClose()
+      onClose();
     }
-  }
+  };
 
   React.useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown)
-    document.body.style.overflow = "hidden"
+    document.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden";
 
     return () => {
-      document.removeEventListener("keydown", handleKeyDown)
-      document.body.style.overflow = "unset"
-    }
-  }, [])
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "unset";
+    };
+  }, []);
 
   const handleChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
+    }));
 
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
-      }))
+      }));
     }
-  }
+  };
 
   const validateForm = () => {
-    const newErrors = {}
+    const newErrors = {};
 
-    if (!formData.gateId) newErrors.gateId = "Gate selection is required"
-    if (!formData.plateNumber) newErrors.plateNumber = "Plate number is required"
-    if (!formData.length || Number.parseFloat(formData.length) <= 0) newErrors.length = "Valid length is required"
-    if (!formData.width || Number.parseFloat(formData.width) <= 0) newErrors.width = "Valid width is required"
-    if (!formData.height || Number.parseFloat(formData.height) <= 0) newErrors.height = "Valid height is required"
-    if (!formData.weight || Number.parseFloat(formData.weight) <= 0) newErrors.weight = "Valid weight is required"
+    if (!formData.gateId) newErrors.gateId = "Gate selection is required";
+    if (!formData.plateNumber)
+      newErrors.plateNumber = "Plate number is required";
+    if (!formData.length || Number.parseFloat(formData.length) <= 0)
+      newErrors.length = "Valid length is required";
+    if (!formData.width || Number.parseFloat(formData.width) <= 0)
+      newErrors.width = "Valid width is required";
+    if (!formData.height || Number.parseFloat(formData.height) <= 0)
+      newErrors.height = "Valid height is required";
+    if (!formData.weight || Number.parseFloat(formData.weight) <= 0)
+      newErrors.weight = "Valid weight is required";
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (validateForm()) {
-      onSubmit(formData)
+      onSubmit(formData);
     }
-  }
+  };
 
   return (
     <div
@@ -95,17 +100,26 @@ const ManualInputModal = ({ onClose, onSubmit }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
-            <h2 id="manual-input-title" className="text-xl font-semibold text-gray-900">
+            <h2
+              id="manual-input-title"
+              className="text-xl font-semibold text-gray-900"
+            >
               Manual Vehicle Entry
             </h2>
-            <p className="text-sm text-gray-600 mt-1">Enter vehicle details manually for processing</p>
+            <p className="text-sm text-gray-600 mt-1">
+              Enter vehicle details manually for processing
+            </p>
           </div>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label="Close modal"
           >
-            <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-6 h-6 text-gray-400"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
             </svg>
           </button>
@@ -116,7 +130,10 @@ const ManualInputModal = ({ onClose, onSubmit }) => {
           <div className="space-y-6">
             {/* Gate Selection */}
             <div>
-              <label htmlFor="gateId" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="gateId"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Select Gate *
               </label>
               <select
@@ -124,7 +141,9 @@ const ManualInputModal = ({ onClose, onSubmit }) => {
                 name="gateId"
                 value={formData.gateId}
                 onChange={handleChange}
-                className={`input-field ${errors.gateId ? "border-red-500 focus:ring-red-500" : ""}`}
+                className={`input-field ${
+                  errors.gateId ? "border-red-500 focus:ring-red-500" : ""
+                }`}
                 aria-describedby={errors.gateId ? "gateId-error" : undefined}
               >
                 <option value="">Choose a gate...</option>
@@ -135,7 +154,11 @@ const ManualInputModal = ({ onClose, onSubmit }) => {
                 ))}
               </select>
               {errors.gateId && (
-                <p id="gateId-error" className="mt-1 text-sm text-red-600" role="alert">
+                <p
+                  id="gateId-error"
+                  className="mt-1 text-sm text-red-600"
+                  role="alert"
+                >
                   {errors.gateId}
                 </p>
               )}
@@ -143,7 +166,10 @@ const ManualInputModal = ({ onClose, onSubmit }) => {
 
             {/* Plate Number */}
             <div>
-              <label htmlFor="plateNumber" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="plateNumber"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Vehicle Plate Number *
               </label>
               <input
@@ -152,18 +178,26 @@ const ManualInputModal = ({ onClose, onSubmit }) => {
                 type="text"
                 value={formData.plateNumber}
                 onChange={handleChange}
-                className={`input-field ${errors.plateNumber ? "border-red-500 focus:ring-red-500" : ""}`}
+                className={`input-field ${
+                  errors.plateNumber ? "border-red-500 focus:ring-red-500" : ""
+                }`}
                 placeholder="e.g., ABC-123"
-                aria-describedby={errors.plateNumber ? "plateNumber-error" : undefined}
+                aria-describedby={
+                  errors.plateNumber ? "plateNumber-error" : undefined
+                }
               />
               {errors.plateNumber && (
-                <p id="plateNumber-error" className="mt-1 text-sm text-red-600" role="alert">
+                <p
+                  id="plateNumber-error"
+                  className="mt-1 text-sm text-red-600"
+                  role="alert"
+                >
                   {errors.plateNumber}
                 </p>
               )}
             </div>
 
-            {/* Dimensions Grid */}
+            {/* Dimensions Grid
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">Vehicle Dimensions</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -259,7 +293,7 @@ const ManualInputModal = ({ onClose, onSubmit }) => {
                   )}
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Action Buttons */}
@@ -274,12 +308,12 @@ const ManualInputModal = ({ onClose, onSubmit }) => {
         </form>
       </motion.div>
     </div>
-  )
-}
+  );
+};
 
 ManualInputModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
-}
+};
 
-export default ManualInputModal
+export default ManualInputModal;
