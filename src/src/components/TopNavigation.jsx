@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import PropTypes from "prop-types"
-import { motion } from "framer-motion"
+import { useState } from "react";
+import PropTypes from "prop-types";
+import { motion } from "framer-motion";
 
 const TopNavigation = ({ user, onLogout, onManualInput, onGateControl }) => {
-  const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   return (
     <nav className="bg-gray-900 text-white shadow-lg">
@@ -14,11 +14,23 @@ const TopNavigation = ({ user, onLogout, onManualInput, onGateControl }) => {
           {/* Logo and Title */}
           <div className="flex items-center space-x-4">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M19 7h-8v6h8V7zm-2 4h-4V9h4v2zm4-4v10c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V7c0-1.1.9-2 2-2h14c1.1 0 2 .9 2 2zm-2 0H5v10h14V7z" />
+              <svg
+                className="w-5 h-5 text-blue-600"
+                fill="currentColor"
+                viewBox="0 0 86 86"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M0 13.4375C0 6.01328 6.01328 0 13.4375 0H72.5625C79.9867 0 86 6.01328 86 13.4375V61.8125C86 66.2133 83.8836 70.1102 80.625 72.5625V80.625C80.625 83.598 78.223 86 75.25 86H69.875C66.902 86 64.5 83.598 64.5 80.625V75.25H21.5V80.625C21.5 83.598 19.098 86 16.125 86H10.75C7.77695 86 5.375 83.598 5.375 80.625V72.5625C2.11641 70.1102 0 66.2133 0 61.8125V13.4375ZM21.8191 25.5648L18.8125 37.625H67.1875L64.1809 25.5648C63.5762 23.1797 61.4262 21.5 58.957 21.5H27.043C24.5738 21.5 22.4238 23.1797 21.8359 25.5648H21.8191ZM21.5 53.75C21.5 52.3245 20.9337 50.9573 19.9257 49.9493C18.9177 48.9413 17.5505 48.375 16.125 48.375C14.6995 48.375 13.3323 48.9413 12.3243 49.9493C11.3163 50.9573 10.75 52.3245 10.75 53.75C10.75 55.1755 11.3163 56.5427 12.3243 57.5507C13.3323 58.5587 14.6995 59.125 16.125 59.125C17.5505 59.125 18.9177 58.5587 19.9257 57.5507C20.9337 56.5427 21.5 55.1755 21.5 53.75ZM69.875 59.125C71.3005 59.125 72.6677 58.5587 73.6757 57.5507C74.6837 56.5427 75.25 55.1755 75.25 53.75C75.25 52.3245 74.6837 50.9573 73.6757 49.9493C72.6677 48.9413 71.3005 48.375 69.875 48.375C68.4495 48.375 67.0823 48.9413 66.0743 49.9493C65.0663 50.9573 64.5 52.3245 64.5 53.75C64.5 55.1755 65.0663 56.5427 66.0743 57.5507C67.0823 58.5587 68.4495 59.125 69.875 59.125Z"
+                  fill="white"
+                />
               </svg>
             </div>
-            <h1 className="text-xl font-bold">Toll Gate Monitor</h1>
+            {/* Vertical Flex */}
+            <div className="flex flex-col leading-tight">
+              <h3 className="text-sm text-gray-300">SMART OOTD</h3>
+              <h1 className="text-xl font-bold">Toll Gate Monitor</h1>
+            </div>
           </div>
 
           {/* System Status */}
@@ -27,7 +39,9 @@ const TopNavigation = ({ user, onLogout, onManualInput, onGateControl }) => {
               <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
               <span className="text-sm text-gray-300">System Online</span>
             </div>
-            <div className="text-sm text-gray-300">Last Update: {new Date().toLocaleTimeString()}</div>
+            <div className="text-sm text-gray-300">
+              Last Update: {new Date().toLocaleTimeString()}
+            </div>
           </div>
 
           {/* Action Buttons and User Menu */}
@@ -57,10 +71,16 @@ const TopNavigation = ({ user, onLogout, onManualInput, onGateControl }) => {
                 aria-expanded={showUserMenu}
               >
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-medium">{user.username.charAt(0).toUpperCase()}</span>
+                  <span className="text-sm font-medium">
+                    {user.username.charAt(0).toUpperCase()}
+                  </span>
                 </div>
                 <span className="hidden sm:block text-sm">{user.username}</span>
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path d="M7 10l5 5 5-5z" />
                 </svg>
               </button>
@@ -74,12 +94,14 @@ const TopNavigation = ({ user, onLogout, onManualInput, onGateControl }) => {
                   className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50"
                 >
                   <div className="px-4 py-2 border-b border-gray-200">
-                    <p className="text-sm font-medium text-gray-900">{user.username}</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {user.username}
+                    </p>
                     <p className="text-xs text-gray-500">{user.role}</p>
                   </div>
                   <button
                     onClick={() => {
-                      setShowUserMenu(false)
+                      setShowUserMenu(false);
                       // Handle profile action
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
@@ -88,8 +110,8 @@ const TopNavigation = ({ user, onLogout, onManualInput, onGateControl }) => {
                   </button>
                   <button
                     onClick={() => {
-                      setShowUserMenu(false)
-                      onLogout()
+                      setShowUserMenu(false);
+                      onLogout();
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
                   >
@@ -102,8 +124,8 @@ const TopNavigation = ({ user, onLogout, onManualInput, onGateControl }) => {
         </div>
       </div>
     </nav>
-  )
-}
+  );
+};
 
 TopNavigation.propTypes = {
   user: PropTypes.shape({
@@ -113,6 +135,6 @@ TopNavigation.propTypes = {
   onLogout: PropTypes.func.isRequired,
   onManualInput: PropTypes.func.isRequired,
   onGateControl: PropTypes.func.isRequired,
-}
+};
 
-export default TopNavigation
+export default TopNavigation;

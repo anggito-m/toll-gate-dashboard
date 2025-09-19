@@ -1,46 +1,46 @@
-"use client"
+"use client";
 
-import React from "react"
-import PropTypes from "prop-types"
-import { motion } from "framer-motion"
+import React from "react";
+import PropTypes from "prop-types";
+import { motion } from "framer-motion";
 
 const LogDetailModal = ({ log, onClose }) => {
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
-      onClose()
+      onClose();
     }
-  }
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === "Escape") {
-      onClose()
+      onClose();
     }
-  }
+  };
 
   React.useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown)
-    document.body.style.overflow = "hidden"
+    document.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden";
 
     return () => {
-      document.removeEventListener("keydown", handleKeyDown)
-      document.body.style.overflow = "unset"
-    }
-  }, [])
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "unset";
+    };
+  }, []);
 
   const getStatusColor = (status) => {
     switch (status) {
       case "OK":
-        return "text-green-600 bg-green-100"
+        return "text-green-600 bg-green-100";
       case "Overload":
-        return "text-red-600 bg-red-100"
+        return "text-red-600 bg-red-100";
       case "Overdimension":
-        return "text-yellow-600 bg-yellow-100"
+        return "text-yellow-600 bg-yellow-100";
       case "Manual Entry":
-        return "text-blue-600 bg-blue-100"
+        return "text-blue-600 bg-blue-100";
       default:
-        return "text-gray-600 bg-gray-100"
+        return "text-gray-600 bg-gray-100";
     }
-  }
+  };
 
   return (
     <div
@@ -60,7 +60,10 @@ const LogDetailModal = ({ log, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
-            <h2 id="modal-title" className="text-xl font-semibold text-gray-900">
+            <h2
+              id="modal-title"
+              className="text-xl font-semibold text-gray-900"
+            >
               Vehicle Log Details
             </h2>
             <p className="text-sm text-gray-600 mt-1">
@@ -72,7 +75,11 @@ const LogDetailModal = ({ log, onClose }) => {
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label="Close modal"
           >
-            <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-6 h-6 text-gray-400"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
             </svg>
           </button>
@@ -84,19 +91,23 @@ const LogDetailModal = ({ log, onClose }) => {
             <div className="space-y-6">
               {/* Status */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-3">Status</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">
+                  Status
+                </h3>
                 <div
-                  className={`inline-flex items-center px-3 py-2 rounded-full text-sm font-medium ${getStatusColor(log.status)}`}
+                  className={`inline-flex items-center px-3 py-2 rounded-full text-sm font-medium ${getStatusColor(
+                    log.status
+                  )}`}
                 >
                   <div
                     className={`w-2 h-2 rounded-full mr-2 ${
                       log.status === "OK"
                         ? "bg-green-500"
                         : log.status === "Overload"
-                          ? "bg-red-500"
-                          : log.status === "Overdimension"
-                            ? "bg-yellow-500"
-                            : "bg-blue-500"
+                        ? "bg-red-500"
+                        : log.status === "Overdimension"
+                        ? "bg-yellow-500"
+                        : "bg-blue-500"
                     }`}
                   ></div>
                   {log.status}
@@ -105,41 +116,63 @@ const LogDetailModal = ({ log, onClose }) => {
 
               {/* Vehicle Information */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-3">Vehicle Information</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">
+                  Vehicle Information
+                </h3>
                 <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-sm font-medium text-gray-600">Vehicle ID:</span>
-                    <span className="text-sm text-gray-900">{log.vehicleId}</span>
+                    <span className="text-sm font-medium text-gray-600">
+                      Vehicle ID:
+                    </span>
+                    <span className="text-sm text-gray-900">
+                      {log.vehicleId}
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm font-medium text-gray-600">Gate ID:</span>
+                    <span className="text-sm font-medium text-gray-600">
+                      Gate ID:
+                    </span>
                     <span className="text-sm text-gray-900">{log.gateId}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm font-medium text-gray-600">Timestamp:</span>
-                    <span className="text-sm text-gray-900">{log.timestamp}</span>
+                    <span className="text-sm font-medium text-gray-600">
+                      Timestamp:
+                    </span>
+                    <span className="text-sm text-gray-900">
+                      {log.timestamp}
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Dimensions */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-3">Dimensions</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">
+                  Dimensions
+                </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-gray-50 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-gray-900">{log.dimensions.length}m</div>
+                    <div className="text-2xl font-bold text-gray-900">
+                      {log.dimensions.length}m
+                    </div>
                     <div className="text-sm text-gray-600">Length</div>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-gray-900">{log.dimensions.width}m</div>
+                    <div className="text-2xl font-bold text-gray-900">
+                      {log.dimensions.width}m
+                    </div>
                     <div className="text-sm text-gray-600">Width</div>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-gray-900">{log.dimensions.height}m</div>
+                    <div className="text-2xl font-bold text-gray-900">
+                      {log.dimensions.height}m
+                    </div>
                     <div className="text-sm text-gray-600">Height</div>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-gray-900">{log.weight}t</div>
+                    <div className="text-2xl font-bold text-gray-900">
+                      {log.weight}t
+                    </div>
                     <div className="text-sm text-gray-600">Weight</div>
                   </div>
                 </div>
@@ -149,7 +182,7 @@ const LogDetailModal = ({ log, onClose }) => {
             {/* Right Column - Photos and Sensor Data */}
             <div className="space-y-6">
               {/* Photos */}
-              <div>
+              {/* <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-3">Vehicle Photos</h3>
                 <div className="grid grid-cols-1 gap-4">
                   {log.photos.map((photo, index) => (
@@ -165,37 +198,55 @@ const LogDetailModal = ({ log, onClose }) => {
                     </div>
                   ))}
                 </div>
-              </div>
+              </div> */}
 
               {/* Sensor Readings */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-3">Sensor Readings</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">
+                  Sensor Readings
+                </h3>
                 <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-600">Weight Sensor:</span>
+                    <span className="text-sm font-medium text-gray-600">
+                      Weight Sensor:
+                    </span>
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-900">{log.sensorReadings.weightSensor}t</span>
+                      <span className="text-sm text-gray-900">
+                        {log.sensorReadings.weightSensor}t
+                      </span>
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     </div>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-600">Height Sensor:</span>
+                    <span className="text-sm font-medium text-gray-600">
+                      Height Sensor:
+                    </span>
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-900">{log.sensorReadings.heightSensor}m</span>
+                      <span className="text-sm text-gray-900">
+                        {log.sensorReadings.heightSensor}m
+                      </span>
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     </div>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-600">Length Sensor:</span>
+                    <span className="text-sm font-medium text-gray-600">
+                      Length Sensor:
+                    </span>
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-900">{log.sensorReadings.lengthSensor}m</span>
+                      <span className="text-sm text-gray-900">
+                        {log.sensorReadings.lengthSensor}m
+                      </span>
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     </div>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-600">Width Sensor:</span>
+                    <span className="text-sm font-medium text-gray-600">
+                      Width Sensor:
+                    </span>
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-900">{log.sensorReadings.widthSensor}m</span>
+                      <span className="text-sm text-gray-900">
+                        {log.sensorReadings.widthSensor}m
+                      </span>
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     </div>
                   </div>
@@ -212,7 +263,7 @@ const LogDetailModal = ({ log, onClose }) => {
             <button
               onClick={() => {
                 // Handle export functionality
-                console.log("Exporting log:", log)
+                console.log("Exporting log:", log);
               }}
               className="btn-primary"
             >
@@ -222,7 +273,7 @@ const LogDetailModal = ({ log, onClose }) => {
               <button
                 onClick={() => {
                   // Handle flag for review
-                  console.log("Flagging for review:", log)
+                  console.log("Flagging for review:", log);
                 }}
                 className="bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
               >
@@ -233,8 +284,8 @@ const LogDetailModal = ({ log, onClose }) => {
         </div>
       </motion.div>
     </div>
-  )
-}
+  );
+};
 
 LogDetailModal.propTypes = {
   log: PropTypes.shape({
@@ -243,21 +294,29 @@ LogDetailModal.propTypes = {
     gateId: PropTypes.string.isRequired,
     vehicleId: PropTypes.string.isRequired,
     dimensions: PropTypes.shape({
-      length: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      length: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
+      width: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
+      height: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
     }).isRequired,
-    weight: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    weight: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+      .isRequired,
     status: PropTypes.string.isRequired,
     photos: PropTypes.arrayOf(PropTypes.string).isRequired,
     sensorReadings: PropTypes.shape({
-      weightSensor: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      heightSensor: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      lengthSensor: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      widthSensor: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      weightSensor: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
+      heightSensor: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
+      lengthSensor: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
+      widthSensor: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
     }).isRequired,
   }).isRequired,
   onClose: PropTypes.func.isRequired,
-}
+};
 
-export default LogDetailModal
+export default LogDetailModal;

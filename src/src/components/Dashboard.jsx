@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import PropTypes from "prop-types"
-import { motion } from "framer-motion"
-import TopNavigation from "./TopNavigation"
-import SummaryCards from "./SummaryCards"
-import LogsTable from "./LogsTable"
-import MapPlaceholder from "./MapPlaceholder"
-import LogDetailModal from "./LogDetailModal"
-import ManualInputModal from "./ManualInputModal"
-import GateControlModal from "./GateControlModal"
+import { useState, useEffect } from "react";
+import PropTypes from "prop-types";
+import { motion } from "framer-motion";
+import TopNavigation from "./TopNavigation";
+import SummaryCards from "./SummaryCards";
+import LogsTable from "./LogsTable";
+import MapPlaceholder from "./MapPlaceholder";
+import LogDetailModal from "./LogDetailModal";
+import ManualInputModal from "./ManualInputModal";
+import GateControlModal from "./GateControlModal";
 
 // Mock data
 const mockLogs = [
@@ -61,21 +61,29 @@ const mockLogs = [
       widthSensor: 3.5,
     },
   },
-]
+];
+const calculateSummary = (logs) => {
+  const totalVehicles = logs.length;
+  const overloadOverdimensionCount = logs.filter(
+    (log) => log.status === "Overload" || log.status === "Overdimension"
+  ).length;
 
-const mockSummary = {
-  activeGates: 12,
-  overloadCount: 3,
-  avgProcessingTime: "2.3s",
-  totalVehicles: 156,
-}
+  return {
+    activeGates: new Set(logs.map((log) => log.gateId)).size, // unique gates
+    overloadOverdimensionCount,
+    avgProcessingTime: "2.3s", // keep this mocked unless you have real timing
+    totalVehicles,
+  };
+};
+
+const dataSummary = calculateSummary(mockLogs);
 
 const Dashboard = ({ user, onLogout }) => {
-  const [logs, setLogs] = useState(mockLogs)
-  const [summary, setSummary] = useState(mockSummary)
-  const [selectedLog, setSelectedLog] = useState(null)
-  const [showManualInput, setShowManualInput] = useState(false)
-  const [showGateControl, setShowGateControl] = useState(false)
+  const [logs, setLogs] = useState(mockLogs);
+  const [summary, setSummary] = useState(dataSummary);
+  const [selectedLog, setSelectedLog] = useState(null);
+  const [showManualInput, setShowManualInput] = useState(false);
+  const [showGateControl, setShowGateControl] = useState(false);
 
   // Simulate real-time updates
   useEffect(() => {
@@ -84,15 +92,26 @@ const Dashboard = ({ user, onLogout }) => {
       const newLog = {
         id: Date.now(),
         timestamp: new Date().toLocaleString(),
-        gateId: `GATE-${String(Math.floor(Math.random() * 10) + 1).padStart(3, "0")}`,
-        vehicleId: `${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}-${Math.floor(Math.random() * 900) + 100}`,
+        gateId: `GATE-${String(Math.floor(Math.random() * 10) + 1).padStart(
+          3,
+          "0"
+        )}`,
+        vehicleId: `${String.fromCharCode(
+          65 + Math.floor(Math.random() * 26)
+        )}${String.fromCharCode(
+          65 + Math.floor(Math.random() * 26)
+        )}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}-${
+          Math.floor(Math.random() * 900) + 100
+        }`,
         dimensions: {
           length: (Math.random() * 10 + 10).toFixed(1),
           width: (Math.random() * 1 + 2).toFixed(1),
           height: (Math.random() * 1.5 + 2.5).toFixed(1),
         },
         weight: (Math.random() * 15 + 10).toFixed(1),
-        status: ["OK", "Overload", "Overdimension"][Math.floor(Math.random() * 3)],
+        status: ["OK", "Overload", "Overdimension"][
+          Math.floor(Math.random() * 3)
+        ],
         photos: ["/placeholder-meinv.png"],
         sensorReadings: {
           weightSensor: (Math.random() * 15 + 10).toFixed(1),
@@ -100,22 +119,25 @@ const Dashboard = ({ user, onLogout }) => {
           lengthSensor: (Math.random() * 10 + 10).toFixed(1),
           widthSensor: (Math.random() * 1 + 2).toFixed(1),
         },
-      }
+      };
 
-      setLogs((prev) => [newLog, ...prev.slice(0, 9)])
+      setLogs((prev) => [newLog, ...prev.slice(0, 9)]);
       setSummary((prev) => ({
         ...prev,
         totalVehicles: prev.totalVehicles + 1,
-        overloadCount: newLog.status === "Overload" ? prev.overloadCount + 1 : prev.overloadCount,
-      }))
-    }, 10000) // Update every 10 seconds
+        overloadOverdimensionCount:
+          newLog.status === "Overload" || newLog.status === "Overdimension"
+            ? prev.overloadOverdimensionCount + 1
+            : prev.overloadOverdimensionCount,
+      }));
+    }, 10000); // Update every 10 seconds
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogClick = (log) => {
-    setSelectedLog(log)
-  }
+    setSelectedLog(log);
+  };
 
   const handleManualSubmit = (data) => {
     const newLog = {
@@ -137,11 +159,11 @@ const Dashboard = ({ user, onLogout }) => {
         lengthSensor: Number.parseFloat(data.length),
         widthSensor: Number.parseFloat(data.width),
       },
-    }
+    };
 
-    setLogs((prev) => [newLog, ...prev])
-    setShowManualInput(false)
-  }
+    setLogs((prev) => [newLog, ...prev]);
+    setShowManualInput(false);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -153,7 +175,11 @@ const Dashboard = ({ user, onLogout }) => {
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
           <SummaryCards summary={summary} />
         </motion.div>
 
@@ -178,14 +204,29 @@ const Dashboard = ({ user, onLogout }) => {
       </main>
 
       {/* Modals */}
-      {selectedLog && <LogDetailModal log={selectedLog} onClose={() => setSelectedLog(null)} />}
+      {selectedLog && (
+        <LogDetailModal
+          log={selectedLog}
+          onClose={() => setSelectedLog(null)}
+        />
+      )}
 
-      {showManualInput && <ManualInputModal onClose={() => setShowManualInput(false)} onSubmit={handleManualSubmit} />}
+      {showManualInput && (
+        <ManualInputModal
+          onClose={() => setShowManualInput(false)}
+          onSubmit={handleManualSubmit}
+        />
+      )}
 
-      {showGateControl && <GateControlModal onClose={() => setShowGateControl(false)} userRole={user.role} />}
+      {showGateControl && (
+        <GateControlModal
+          onClose={() => setShowGateControl(false)}
+          userRole={user.role}
+        />
+      )}
     </div>
-  )
-}
+  );
+};
 
 Dashboard.propTypes = {
   user: PropTypes.shape({
@@ -193,6 +234,6 @@ Dashboard.propTypes = {
     role: PropTypes.string.isRequired,
   }).isRequired,
   onLogout: PropTypes.func.isRequired,
-}
+};
 
-export default Dashboard
+export default Dashboard;
