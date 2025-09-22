@@ -10,6 +10,20 @@ import MapPlaceholder from "./MapPlaceholder";
 import LogDetailModal from "./LogDetailModal";
 import ManualInputModal from "./ManualInputModal";
 import GateControlModal from "./GateControlModal";
+import axios from "axios";
+
+// Fetch logs from server (replace with real API call if available)
+// const fetchLogs = async () => {
+//   try {
+//     const response = await axios.get(
+//       `${process.env.SERVER_ENDPOINT}/api/logs/recent`
+//     );
+//     return response.data.logs;
+//   } catch (error) {
+//     console.error("Error fetching logs:", error);
+//     return [];
+//   }
+// };
 
 // Mock data
 const mockLogs = [
