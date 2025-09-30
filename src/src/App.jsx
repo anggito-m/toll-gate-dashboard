@@ -13,7 +13,7 @@ function App() {
   const handleLogin = async (loginData) => {
     try {
       const res = await axios.post(
-        `${process.env.SERVER_ENDPOINT}/api/auth/login/error`,
+        `${import.meta.env.VITE_SERVER_ENDPOINT}/api/auth/login`,
         {
           username: loginData.username,
           password: loginData.password,

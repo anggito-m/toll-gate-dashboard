@@ -60,16 +60,28 @@ const LogsTable = ({ logs, onLogClick }) => {
         "bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm font-medium",
     };
 
-    return (
-      <span
-        className={
-          statusClasses[status] ||
-          "bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-sm font-medium"
-        }
-      >
-        {status}
-      </span>
-    );
+    if (status.includes("Overload") && status.includes("Overdimension")) {
+      return (
+        <>
+          {status.map((stat, index) => (
+            <span key={index} className="status-overload-overdimension">
+              {stat}
+            </span>
+          ))}
+        </>
+      );
+    } else {
+      return (
+        <span
+          className={
+            statusClasses[status] ||
+            "bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-sm font-medium"
+          }
+        >
+          {status}
+        </span>
+      );
+    }
   };
 
   return (

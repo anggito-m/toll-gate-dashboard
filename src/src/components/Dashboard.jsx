@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import { motion } from "framer-motion";
+import { motion, press } from "framer-motion";
 import TopNavigation from "./TopNavigation";
 import SummaryCards from "./SummaryCards";
 import LogsTable from "./LogsTable";
@@ -99,55 +99,108 @@ const Dashboard = ({ user, onLogout }) => {
   const [showManualInput, setShowManualInput] = useState(false);
   const [showGateControl, setShowGateControl] = useState(false);
 
-  // Simulate real-time updates
+  // Connect to backend via WebSocket
   useEffect(() => {
-    const interval = setInterval(() => {
-      // Simulate new log entry
-      const newLog = {
-        id: Date.now(),
-        timestamp: new Date().toLocaleString(),
-        gateId: `GATE-${String(Math.floor(Math.random() * 10) + 1).padStart(
-          3,
-          "0"
-        )}`,
-        vehicleId: `${String.fromCharCode(
-          65 + Math.floor(Math.random() * 26)
-        )}${String.fromCharCode(
-          65 + Math.floor(Math.random() * 26)
-        )}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}-${
-          Math.floor(Math.random() * 900) + 100
-        }`,
-        dimensions: {
-          length: (Math.random() * 10 + 10).toFixed(1),
-          width: (Math.random() * 1 + 2).toFixed(1),
-          height: (Math.random() * 1.5 + 2.5).toFixed(1),
-        },
-        weight: (Math.random() * 15 + 10).toFixed(1),
-        status: ["OK", "Overload", "Overdimension"][
-          Math.floor(Math.random() * 3)
-        ],
-        photos: ["/placeholder-meinv.png"],
-        sensorReadings: {
-          weightSensor: (Math.random() * 15 + 10).toFixed(1),
-          heightSensor: (Math.random() * 1.5 + 2.5).toFixed(1),
-          lengthSensor: (Math.random() * 10 + 10).toFixed(1),
-          widthSensor: (Math.random() * 1 + 2).toFixed(1),
-        },
-      };
+    const ws = new WebSocket(`${import.meta.env.VITE_WEBSOCKET_ENDPOINT}`);
 
-      setLogs((prev) => [newLog, ...prev.slice(0, 9)]);
-      setSummary((prev) => ({
-        ...prev,
-        totalVehicles: prev.totalVehicles + 1,
-        overloadOverdimensionCount:
-          newLog.status === "Overload" || newLog.status === "Overdimension"
-            ? prev.overloadOverdimensionCount + 1
-            : prev.overloadOverdimensionCount,
-      }));
-    }, 10000); // Update every 10 seconds
+    ws.onopen = () => {
+      console.log("Connected to WebSocket backend");
+    };
 
-    return () => clearInterval(interval);
+    ws.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+
+        if (msg.type == "initial") {
+          setLogs(msg.data);
+          // const dataSummary = calculateSummary(msg.data);
+          setSummary(dataSummary);
+        }
+
+        if (msg.type == "update") {
+          const newLog = msg.data;
+
+          setLogs((prev) =>
+            Array.isArray(prev) ? [...prev, newLog] : [newLog]
+          );
+
+          setSummary((prev) => ({
+            ...calculateSummary([newLog, ...logs]),
+            totalVehicles: prev.totalVehicles + 1,
+            overloadOverdimensionCount:
+              newLog.status === "Overload" || newLog.status === "Overdimension"
+                ? prev.overloadOverdimensionCount + 1
+                : prev.overloadOverdimensionCount,
+          }));
+        }
+
+        console.log("Current Logs:", logs);
+        // How many vehicle in logs
+        console.log("Total Vehicles:", logs.length);
+        console.log("Current Summary:", summary);
+      } catch (error) {
+        console.error("Error parsing WebSocket message:", error);
+      }
+    };
+    ws.onclose = () => {
+      console.log("WebSocket connection closed");
+    };
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+    return () => {
+      ws.close();
+    };
   }, []);
+  // // Simulate real-time updates
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     // Simulate new log entry
+  //     const newLog = {
+  //       id: Date.now(),
+  //       timestamp: new Date().toLocaleString(),
+  //       gateId: `GATE-${String(Math.floor(Math.random() * 10) + 1).padStart(
+  //         3,
+  //         "0"
+  //       )}`,
+  //       vehicleId: `${String.fromCharCode(
+  //         65 + Math.floor(Math.random() * 26)
+  //       )}${String.fromCharCode(
+  //         65 + Math.floor(Math.random() * 26)
+  //       )}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}-${
+  //         Math.floor(Math.random() * 900) + 100
+  //       }`,
+  //       dimensions: {
+  //         length: (Math.random() * 10 + 10).toFixed(1),
+  //         width: (Math.random() * 1 + 2).toFixed(1),
+  //         height: (Math.random() * 1.5 + 2.5).toFixed(1),
+  //       },
+  //       weight: (Math.random() * 15 + 10).toFixed(1),
+  //       status: ["OK", "Overload", "Overdimension"][
+  //         Math.floor(Math.random() * 3)
+  //       ],
+  //       photos: ["/placeholder-meinv.png"],
+  //       sensorReadings: {
+  //         weightSensor: (Math.random() * 15 + 10).toFixed(1),
+  //         heightSensor: (Math.random() * 1.5 + 2.5).toFixed(1),
+  //         lengthSensor: (Math.random() * 10 + 10).toFixed(1),
+  //         widthSensor: (Math.random() * 1 + 2).toFixed(1),
+  //       },
+  //     };
+
+  //     setLogs((prev) => [newLog, ...prev.slice(0, 9)]);
+  //     setSummary((prev) => ({
+  //       ...prev,
+  //       totalVehicles: prev.totalVehicles + 1,
+  //       overloadOverdimensionCount:
+  //         newLog.status === "Overload" || newLog.status === "Overdimension"
+  //           ? prev.overloadOverdimensionCount + 1
+  //           : prev.overloadOverdimensionCount,
+  //     }));
+  //   }, 10000); // Update every 10 seconds
+
+  //   return () => clearInterval(interval);
+  // }, []);
 
   const handleLogClick = (log) => {
     setSelectedLog(log);

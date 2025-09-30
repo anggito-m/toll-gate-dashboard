@@ -28,18 +28,19 @@ const LogDetailModal = ({ log, onClose }) => {
   }, []);
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case "OK":
-        return "text-green-600 bg-green-100";
-      case "Overload":
-        return "text-red-600 bg-red-100";
-      case "Overdimension":
-        return "text-yellow-600 bg-yellow-100";
-      case "Manual Entry":
-        return "text-blue-600 bg-blue-100";
-      default:
-        return "text-gray-600 bg-gray-100";
-    }
+    // status is array
+    const res = status.includes("OK")
+      ? "text-green-600 bg-green-100"
+      : (status.includes("Overload") || status.includes("Overdimension")) &&
+        status.length < 2
+      ? "text-yellow-600 bg-yellow-100"
+      : status.includes("Overload") && status.includes("Overdimension")
+      ? "text-red-600 bg-red-100"
+      : status.includes("Manual Entry")
+      ? "text-blue-600 bg-blue-100"
+      : "text-gray-600 bg-gray-100";
+
+    return res;
   };
 
   return (
@@ -99,18 +100,23 @@ const LogDetailModal = ({ log, onClose }) => {
                     log.status
                   )}`}
                 >
+                  {console.log(log.status)}
                   <div
                     className={`w-2 h-2 rounded-full mr-2 ${
-                      log.status === "OK"
+                      log.status.includes("OK")
                         ? "bg-green-500"
-                        : log.status === "Overload"
+                        : log.status.includes("Overload") &&
+                          log.status.includes("Overdimension")
                         ? "bg-red-500"
-                        : log.status === "Overdimension"
+                        : (log.status.includes("Overdimension") ||
+                            log.status.includes("Overload")) &&
+                          log.status.length < 2
                         ? "bg-yellow-500"
                         : "bg-blue-500"
                     }`}
                   ></div>
-                  {log.status}
+                  {/* Join log status */}
+                  {log.status.join(" ")}
                 </div>
               </div>
 
@@ -269,7 +275,8 @@ const LogDetailModal = ({ log, onClose }) => {
             >
               Export Report
             </button>
-            {(log.status === "Overload" || log.status === "Overdimension") && (
+            {(log.status.includes("Overload") ||
+              log.status.includes("Overdimension")) && (
               <button
                 onClick={() => {
                   // Handle flag for review
