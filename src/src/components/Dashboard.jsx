@@ -165,7 +165,7 @@ const Dashboard = ({ user, onLogout }) => {
         }
 
         if (msg.type == "update") {
-          const newLog = msg.data;
+          const newLog = msg.data[0];
           console.log("New log received via WebSocket:", newLog);
           setLogs((prev) =>
             Array.isArray(prev) ? [...prev, newLog] : [newLog]
