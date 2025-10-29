@@ -5,9 +5,9 @@ const MapPlaceholder = () => {
   // Gate dibuat seperti jalur tol horizontal
   const gates = [
     { id: "GATE-001", name: "Lane 1", status: "active" },
-    { id: "GATE-002", name: "Lane 2", status: "active" },
-    { id: "GATE-003", name: "Lane 3", status: "maintenance" },
-    { id: "GATE-004", name: "Lane 4", status: "offline" },
+    // { id: "GATE-002", name: "Lane 2", status: "active" },
+    // { id: "GATE-003", name: "Lane 3", status: "maintenance" },
+    // { id: "GATE-004", name: "Lane 4", status: "offline" },
   ];
 
   return (

@@ -27,65 +27,106 @@ import axios from "axios";
 
 // Mock data
 const mockLogs = [
-  {
-    id: 1,
-    timestamp: "2024-01-15 14:30:25",
-    gateId: "GATE-001",
-    vehicleId: "ABC-123",
-    dimensions: { length: 12.5, width: 2.5, height: 3.2 },
-    weight: 15.5,
-    status: "OK",
-    photos: ["/truck-front-view.jpg"],
-    sensorReadings: {
-      weightSensor: 15.5,
-      heightSensor: 3.2,
-      lengthSensor: 12.5,
-      widthSensor: 2.5,
-    },
-  },
-  {
-    id: 2,
-    timestamp: "2024-01-15 14:28:15",
-    gateId: "GATE-002",
-    vehicleId: "XYZ-789",
-    dimensions: { length: 18.2, width: 2.8, height: 4.1 },
-    weight: 25.8,
-    status: "Overload",
-    photos: ["/overloaded-truck.jpg"],
-    sensorReadings: {
-      weightSensor: 25.8,
-      heightSensor: 4.1,
-      lengthSensor: 18.2,
-      widthSensor: 2.8,
-    },
-  },
-  {
-    id: 3,
-    timestamp: "2024-01-15 14:25:45",
-    gateId: "GATE-003",
-    vehicleId: "DEF-456",
-    dimensions: { length: 22.0, width: 3.5, height: 3.8 },
-    weight: 18.2,
-    status: "Overdimension",
-    photos: ["/oversized-truck.jpg"],
-    sensorReadings: {
-      weightSensor: 18.2,
-      heightSensor: 3.8,
-      lengthSensor: 22.0,
-      widthSensor: 3.5,
-    },
-  },
+  // {
+  //   id: 1,
+  //   timestamp: "2024-01-15 14:30:25",
+  //   gateId: "GATE-001",
+  //   vehicleId: "ABC-123",
+  //   dimensions: { length: 12.5, width: 2.5, height: 3.2 },
+  //   weight: 15.5,
+  //   status: "OK",
+  //   photos: ["/truck-front-view.jpg"],
+  //   sensorReadings: {
+  //     weightSensor: 15.5,
+  //     heightSensor: 3.2,
+  //     lengthSensor: 12.5,
+  //     widthSensor: 2.5,
+  //   },
+  // },
+  // {
+  //   id: 2,
+  //   timestamp: "2024-01-15 14:28:15",
+  //   gateId: "GATE-002",
+  //   vehicleId: "XYZ-789",
+  //   dimensions: { length: 18.2, width: 2.8, height: 4.1 },
+  //   weight: 25.8,
+  //   status: "Overload",
+  //   photos: ["/overloaded-truck.jpg"],
+  //   sensorReadings: {
+  //     weightSensor: 25.8,
+  //     heightSensor: 4.1,
+  //     lengthSensor: 18.2,
+  //     widthSensor: 2.8,
+  //   },
+  // },
+  // {
+  //   id: 3,
+  //   timestamp: "2024-01-15 14:25:45",
+  //   gateId: "GATE-003",
+  //   vehicleId: "DEF-456",
+  //   dimensions: { length: 22.0, width: 3.5, height: 3.8 },
+  //   weight: 18.2,
+  //   status: "Overdimension",
+  //   photos: ["/oversized-truck.jpg"],
+  //   sensorReadings: {
+  //     weightSensor: 18.2,
+  //     heightSensor: 3.8,
+  //     lengthSensor: 22.0,
+  //     widthSensor: 3.5,
+  //   },
+  // },
 ];
+// const calculateSummary = (logs) => {
+//   const totalVehicles = logs.length;
+//   const overloadOverdimensionCount = logs.filter((log) => {
+//     const statuses = [].concat(log.status || []);
+
+//     return statuses.includes("Overload") || statuses.includes("Overdimension");
+//   }).length;
+//   return {
+//     activeGates: new Set(logs.map((log) => log.gateId)).size, // unique gates
+//     overloadOverdimensionCount,
+//     avgProcessingTime: "2.3s", // keep this mocked unless you have real timing
+//     totalVehicles,
+//   };
+// };
+
 const calculateSummary = (logs) => {
+  // If logs is a string, try parsing
+  if (typeof logs === "string") {
+    try {
+      logs = JSON.parse(logs);
+    } catch {
+      console.warn("Invalid logs format");
+      return {
+        activeGates: 0,
+        overloadOverdimensionCount: 0,
+        avgProcessingTime: "0s",
+        totalVehicles: 0,
+      };
+    }
+  }
+
+  if (!Array.isArray(logs)) {
+    console.warn("Logs is not an array:", logs);
+    return {
+      activeGates: 0,
+      overloadOverdimensionCount: 0,
+      avgProcessingTime: "0s",
+      totalVehicles: 0,
+    };
+  }
+
   const totalVehicles = logs.length;
-  const overloadOverdimensionCount = logs.filter(
-    (log) => log.status === "Overload" || log.status === "Overdimension"
-  ).length;
+  const overloadOverdimensionCount = logs.filter((log) => {
+    const statuses = [].concat(log.status || []);
+    return statuses.includes("Overload") || statuses.includes("Overdimension");
+  }).length;
 
   return {
-    activeGates: new Set(logs.map((log) => log.gateId)).size, // unique gates
+    activeGates: new Set(logs.map((log) => log.gateId)).size,
     overloadOverdimensionCount,
-    avgProcessingTime: "2.3s", // keep this mocked unless you have real timing
+    avgProcessingTime: "2.3s",
     totalVehicles,
   };
 };
@@ -101,7 +142,11 @@ const Dashboard = ({ user, onLogout }) => {
 
   // Connect to backend via WebSocket
   useEffect(() => {
-    const ws = new WebSocket(`${import.meta.env.VITE_WEBSOCKET_ENDPOINT}`);
+    const ws = new WebSocket(
+      window.location.protocol === "https:"
+        ? `${import.meta.env.VITE_WEBSOCKET_ENDPOINT}`
+        : "ws://localhost:3000"
+    );
 
     ws.onopen = () => {
       console.log("Connected to WebSocket backend");
@@ -112,14 +157,16 @@ const Dashboard = ({ user, onLogout }) => {
         const msg = JSON.parse(event.data);
 
         if (msg.type == "initial") {
-          setLogs(msg.data);
-          // const dataSummary = calculateSummary(msg.data);
-          setSummary(dataSummary);
+          const newLog = msg.data;
+          setLogs(newLog);
+          setSummary(calculateSummary(newLog));
+          console.log("Initial logs received via WebSocket:", newLog);
+          return newLog;
         }
 
         if (msg.type == "update") {
           const newLog = msg.data;
-
+          console.log("New log received via WebSocket:", newLog);
           setLogs((prev) =>
             Array.isArray(prev) ? [...prev, newLog] : [newLog]
           );
@@ -134,7 +181,6 @@ const Dashboard = ({ user, onLogout }) => {
           }));
         }
 
-        console.log("Current Logs:", logs);
         // How many vehicle in logs
         console.log("Total Vehicles:", logs.length);
         console.log("Current Summary:", summary);

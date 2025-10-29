@@ -3,19 +3,23 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { motion } from "framer-motion";
+import { kirimManual } from "../../api/kirimManual";
 
 const ManualInputModal = ({ onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     gateId: "",
     plateNumber: "",
-    length: "",
-    width: "",
-    height: "",
-    weight: "",
+    // length: "",
+    // width: "",
+    // height: "",
+    // weight: "",
   });
 
   const [errors, setErrors] = useState({});
-
+  // State untuk loading saat submit
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  // State untuk menyimpan error dari API
+  const [apiError, setApiError] = useState(null);
   const gates = ["GATE-001", "GATE-002", "GATE-003", "GATE-004", "GATE-005"];
 
   const handleBackdropClick = (e) => {
@@ -42,9 +46,11 @@ const ManualInputModal = ({ onClose, onSubmit }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    // Konversi ke huruf besar HANYA untuk plateNumber
+    const finalValue = name === "plateNumber" ? value.toUpperCase() : value;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: finalValue,
     }));
 
     // Clear error when user starts typing
@@ -62,23 +68,32 @@ const ManualInputModal = ({ onClose, onSubmit }) => {
     if (!formData.gateId) newErrors.gateId = "Gate selection is required";
     if (!formData.plateNumber)
       newErrors.plateNumber = "Plate number is required";
-    if (!formData.length || Number.parseFloat(formData.length) <= 0)
-      newErrors.length = "Valid length is required";
-    if (!formData.width || Number.parseFloat(formData.width) <= 0)
-      newErrors.width = "Valid width is required";
-    if (!formData.height || Number.parseFloat(formData.height) <= 0)
-      newErrors.height = "Valid height is required";
-    if (!formData.weight || Number.parseFloat(formData.weight) <= 0)
-      newErrors.weight = "Valid weight is required";
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setApiError(null);
+
     if (validateForm()) {
-      onSubmit(formData);
+      setIsSubmitting(true);
+
+      try {
+        const result = await kirimManual(formData.plateNumber);
+        console.log("Result from kirimManual:", result);
+        onSubmit(formData, result);
+        onClose();
+      } catch (error) {
+        setApiError(error.message || "Gagal terhubung ke server.");
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+    // Validasi sederhana
+    if (!formData.plateNumber.trim()) {
+      setError("Nomor kendaraan tidak boleh kosong.");
+      return;
     }
   };
 
@@ -297,13 +312,46 @@ const ManualInputModal = ({ onClose, onSubmit }) => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
+          {/* <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
             <button type="button" onClick={onClose} className="btn-secondary">
               Cancel
             </button>
             <button type="submit" className="btn-primary">
               Submit Entry
             </button>
+          </div> */}
+          <div className="flex flex-col items-end mt-8 pt-6 border-t border-gray-200">
+            {/* --- TAMPILKAN API ERROR DI SINI --- */}
+            {apiError && (
+              <div
+                className="w-full mb-4 p-3 bg-red-100 border border-red-300 text-red-800 rounded-md text-sm"
+                role="alert"
+              >
+                <strong>Error:</strong> {apiError}
+              </div>
+            )}
+            {/* --------------------------------- */}
+
+            <div className="flex space-x-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn-secondary"
+                // Nonaktifkan saat submitting
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="btn-primary"
+                // Nonaktifkan saat submitting
+                disabled={isSubmitting}
+              >
+                {/* Ganti teks tombol saat loading */}
+                {isSubmitting ? "Submitting..." : "Submit Entry"}
+              </button>
+            </div>
           </div>
         </form>
       </motion.div>

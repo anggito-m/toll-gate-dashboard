@@ -28,20 +28,52 @@ const LogDetailModal = ({ log, onClose }) => {
   }, []);
 
   const getStatusColor = (status) => {
-    // status is array
-    const res = status.includes("OK")
+    if (!status) return "text-gray-600 bg-gray-100";
+
+    let statusList = [];
+
+    // Pastikan status dalam bentuk array
+    if (Array.isArray(status)) {
+      statusList = status;
+    } else if (typeof status === "string") {
+      statusList = [status];
+    }
+
+    // Tangani jika formatnya seperti ['{"Overload"}'] atau ['{"Overload", "Overdimension"}']
+    statusList = statusList.flatMap((item) => {
+      if (typeof item === "string") {
+        // Hilangkan karakter { } [ ] dan tanda kutip ganda
+        const cleaned = item.replace(/[\{\}\[\]"]+/g, "").trim();
+
+        // Pisahkan jika ada lebih dari satu status di dalam string
+        return cleaned.split(",").map((s) => s.trim());
+      }
+      return item;
+    });
+
+    // Setelah dibersihkan, statusList bisa misalnya jadi ['Overload', 'Overdimension']
+    const hasOK = statusList.includes("OK");
+    const hasOverload = statusList.includes("Overload");
+    const hasOverdimension = statusList.includes("Overdimension");
+    const hasManual = statusList.includes("Manual Entry");
+
+    // Tentukan warna berdasarkan kombinasi status
+    const res = hasOK
       ? "text-green-600 bg-green-100"
-      : (status.includes("Overload") || status.includes("Overdimension")) &&
-        status.length < 2
+      : (hasOverload || hasOverdimension) && statusList.length < 2
       ? "text-yellow-600 bg-yellow-100"
-      : status.includes("Overload") && status.includes("Overdimension")
+      : hasOverload && hasOverdimension
       ? "text-red-600 bg-red-100"
-      : status.includes("Manual Entry")
+      : hasManual
       ? "text-blue-600 bg-blue-100"
       : "text-gray-600 bg-gray-100";
 
     return res;
   };
+
+  const statusArray = Object.values(log.status);
+  // Check log.status type
+  console.log("Log Status Type:", typeof log.status);
 
   return (
     <div
@@ -116,7 +148,7 @@ const LogDetailModal = ({ log, onClose }) => {
                     }`}
                   ></div>
                   {/* Join log status */}
-                  {log.status.join(" ")}
+                  {statusArray.join(" ")}
                 </div>
               </div>
 
@@ -298,7 +330,7 @@ LogDetailModal.propTypes = {
   log: PropTypes.shape({
     id: PropTypes.number.isRequired,
     timestamp: PropTypes.string.isRequired,
-    gateId: PropTypes.string.isRequired,
+    gateId: PropTypes.string,
     vehicleId: PropTypes.string.isRequired,
     dimensions: PropTypes.shape({
       length: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
@@ -310,7 +342,10 @@ LogDetailModal.propTypes = {
     }).isRequired,
     weight: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
       .isRequired,
-    status: PropTypes.string.isRequired,
+    status: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.arrayOf(PropTypes.string),
+    ]).isRequired,
     photos: PropTypes.arrayOf(PropTypes.string).isRequired,
     sensorReadings: PropTypes.shape({
       weightSensor: PropTypes.oneOfType([PropTypes.string, PropTypes.number])

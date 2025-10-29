@@ -13,7 +13,7 @@ function App() {
   const handleLogin = async (loginData) => {
     try {
       const res = await axios.post(
-        `${import.meta.env.VITE_SERVER_ENDPOINT}/api/auth/login`,
+        `${import.meta.env.VITE_SERVER_ENDPOINT}/auth/login`,
         {
           username: loginData.username,
           password: loginData.password,

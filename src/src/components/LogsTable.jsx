@@ -12,27 +12,54 @@ const LogsTable = ({ logs, onLogClick }) => {
   const rowsPerPage = 10;
 
   // --- Filtering ---
-  const filteredLogs = logs.filter(
-    (log) =>
-      log.vehicleId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.gateId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.status.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredLogs = logs.filter((log) => {
+    const vehicleId = log.vehicleId?.toLowerCase() || "";
+    const gateId = log.gateId?.toLowerCase() || "";
+    const statuses = Array.isArray(log.status)
+      ? log.status.map((s) => s?.toLowerCase() || "")
+      : [];
+
+    const search = searchTerm.toLowerCase();
+
+    return (
+      vehicleId.includes(search) ||
+      gateId.includes(search) ||
+      statuses.some((s) => s.includes(search))
+    );
+  });
 
   // --- Sorting ---
   const sortedLogs = [...filteredLogs].sort((a, b) => {
-    let aValue = a[sortField];
-    let bValue = b[sortField];
+    let aValue = a?.[sortField];
+    let bValue = b?.[sortField];
 
+    // Null/undefined handling
+    if (aValue == null) aValue = "";
+    if (bValue == null) bValue = "";
+
+    // Convert arrays (like status) to strings for comparison
+    if (Array.isArray(aValue)) aValue = aValue.join(" ");
+    if (Array.isArray(bValue)) bValue = bValue.join(" ");
+
+    // Convert objects to string (just in case)
+    if (typeof aValue === "object") aValue = JSON.stringify(aValue);
+    if (typeof bValue === "object") bValue = JSON.stringify(bValue);
+
+    // Numeric sort for weight
     if (sortField === "weight") {
-      aValue = Number.parseFloat(aValue);
-      bValue = Number.parseFloat(bValue);
+      aValue = parseFloat(aValue) || 0;
+      bValue = parseFloat(bValue) || 0;
     }
 
+    // Case-insensitive compare
+    if (typeof aValue === "string") aValue = aValue.toLowerCase();
+    if (typeof bValue === "string") bValue = bValue.toLowerCase();
+
+    // Directional sorting
     if (sortDirection === "asc") {
-      return aValue > bValue ? 1 : -1;
+      return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
     } else {
-      return aValue < bValue ? 1 : -1;
+      return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
     }
   });
 
@@ -52,6 +79,50 @@ const LogsTable = ({ logs, onLogClick }) => {
   };
 
   const getStatusBadge = (status) => {
+    if (!status) return null;
+
+    // Pastikan status selalu array
+    let statusList = Array.isArray(status) ? status : [status];
+
+    // 🔧 Tangani kasus string JSON atau format aneh seperti '{"Overload"}'
+    statusList = statusList
+      .map((s) => {
+        if (typeof s === "string") {
+          try {
+            // Coba parse JSON jika berbentuk seperti '{"Overload"}'
+            const parsed = JSON.parse(s);
+            // Jika hasilnya string, gunakan string itu
+            if (typeof parsed === "string") return parsed;
+            // Jika hasilnya array, ambil isinya
+            if (Array.isArray(parsed)) return parsed.join(", ");
+            return String(parsed);
+          } catch {
+            // Jika gagal parse, bersihkan karakter khusus
+            return s.replace(/[{}"\\]/g, "").trim();
+          }
+        }
+        return String(s).trim();
+      })
+      .flatMap((s) => s.split(",").map((x) => x.trim())) // pisah jika 'a,b'
+      .filter(Boolean); // hapus string kosong
+
+    // 🔥 Jika ada kombinasi Overload dan Overdimension
+    if (
+      statusList.includes("Overload") &&
+      statusList.includes("Overdimension")
+    ) {
+      return (
+        <>
+          {statusList.map((stat, index) => (
+            <span key={index} className="status-overload-overdimension">
+              {stat}
+            </span>
+          ))}
+        </>
+      );
+    }
+
+    // Kelas status normal
     const statusClasses = {
       OK: "status-ok",
       Overload: "status-overload",
@@ -60,28 +131,17 @@ const LogsTable = ({ logs, onLogClick }) => {
         "bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm font-medium",
     };
 
-    if (status.includes("Overload") && status.includes("Overdimension")) {
-      return (
-        <>
-          {status.map((stat, index) => (
-            <span key={index} className="status-overload-overdimension">
-              {stat}
-            </span>
-          ))}
-        </>
-      );
-    } else {
-      return (
-        <span
-          className={
-            statusClasses[status] ||
-            "bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-sm font-medium"
-          }
-        >
-          {status}
-        </span>
-      );
-    }
+    return statusList.map((stat, index) => (
+      <span
+        key={index}
+        className={
+          statusClasses[stat] ||
+          "bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-sm font-medium"
+        }
+      >
+        {stat}
+      </span>
+    ));
   };
 
   return (
@@ -185,9 +245,13 @@ const LogsTable = ({ logs, onLogClick }) => {
                   {log.vehicleId}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {log.dimensions.length}×{log.dimensions.width}×
-                  {log.dimensions.height}m
+                  {log?.dimensions?.length &&
+                  log?.dimensions?.width &&
+                  log?.dimensions?.height
+                    ? `${log.dimensions.length}×${log.dimensions.width}×${log.dimensions.height}m`
+                    : "N/A"}
                 </td>
+
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {log.weight}
                 </td>
@@ -259,7 +323,7 @@ LogsTable.propTypes = {
     PropTypes.shape({
       id: PropTypes.number.isRequired,
       timestamp: PropTypes.string.isRequired,
-      gateId: PropTypes.string.isRequired,
+      gateId: PropTypes.string,
       vehicleId: PropTypes.string.isRequired,
       dimensions: PropTypes.shape({
         length: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
@@ -271,7 +335,10 @@ LogsTable.propTypes = {
       }).isRequired,
       weight: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
         .isRequired,
-      status: PropTypes.string.isRequired,
+      status: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.arrayOf(PropTypes.string),
+      ]).isRequired,
     })
   ).isRequired,
   onLogClick: PropTypes.func.isRequired,
