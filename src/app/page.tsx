@@ -56,7 +56,7 @@ export default function Page() {
         username: loginData.username,
         token: token,
         email: res.data.email,
-
+        role: "admin"
       };
 
       console.log("Setting user:", userAuth);

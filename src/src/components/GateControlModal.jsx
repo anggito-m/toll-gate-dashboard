@@ -1,24 +1,47 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { motion } from "framer-motion";
+import axios from "axios";
 
-const GateControlModal = ({ onClose, userRole }) => {
+const GateControlModal = ({ onClose, userRole, token }) => {
   const [selectedGate, setSelectedGate] = useState("");
   const [action, setAction] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-
-  const gates = [
-    { id: "GATE-001", name: "LANE 1", status: "open" },
-    // { id: "GATE-002", name: "South Gate", status: "closed" },
-    // { id: "GATE-003", name: "East Gate", status: "maintenance" },
-    // { id: "GATE-004", name: "West Gate", status: "open" },
-    // { id: "GATE-005", name: "Central Gate", status: "closed" },
-  ];
+  const [gates, setGates] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const canControlGates = userRole === "admin" || userRole === "operator";
+
+  // Fetch gates dari backend
+  useEffect(() => {
+    fetchGates();
+  }, []);
+
+  const fetchGates = async () => {
+    try {
+      setIsLoading(true);
+      const res = await axios.get(
+        `${import.meta.env.VITE_SERVER_ENDPOINT}/gates`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setGates(res.data.data || []);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching gates:", err);
+      setError("Failed to load gates");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget && !showConfirmation) {
@@ -32,7 +55,7 @@ const GateControlModal = ({ onClose, userRole }) => {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     document.addEventListener("keydown", handleKeyDown);
     document.body.style.overflow = "hidden";
 
@@ -53,17 +76,54 @@ const GateControlModal = ({ onClose, userRole }) => {
   const confirmAction = async () => {
     setIsProcessing(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      if (selectedGate === "ALL") {
+        // Emergency action
+        const emergencyAction =
+          action === "open all" ? "open-all" : "close-all";
 
-    console.log(`${action} gate ${selectedGate}`);
+        await axios.post(
+          `${
+            import.meta.env.VITE_SERVER_ENDPOINT
+          }/gates/emergency/${emergencyAction}`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-    setIsProcessing(false);
-    setShowConfirmation(false);
-    setSelectedGate("");
-    setAction("");
+        console.log(`Emergency: ${emergencyAction} executed`);
+      } else {
+        // Single gate action
+        await axios.post(
+          `${
+            import.meta.env.VITE_SERVER_ENDPOINT
+          }/gates/${selectedGate}/control`,
+          { action: action },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-    // Could show success message here
+        console.log(`${action} gate ${selectedGate}`);
+      }
+
+      // Refresh gates data
+      await fetchGates();
+
+      setIsProcessing(false);
+      setShowConfirmation(false);
+      setSelectedGate("");
+      setAction("");
+    } catch (err) {
+      console.error("Error controlling gate:", err);
+      alert(err.response?.data?.error || "Failed to control gate");
+      setIsProcessing(false);
+    }
   };
 
   const cancelAction = () => {
@@ -73,9 +133,11 @@ const GateControlModal = ({ onClose, userRole }) => {
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
+    const statusLower = status?.toLowerCase() || "";
+    switch (statusLower) {
       case "open":
         return "text-green-600 bg-green-100";
+      case "close":
       case "closed":
         return "text-red-600 bg-red-100";
       case "maintenance":
@@ -86,7 +148,8 @@ const GateControlModal = ({ onClose, userRole }) => {
   };
 
   const getStatusIcon = (status) => {
-    switch (status) {
+    const statusLower = status?.toLowerCase() || "";
+    switch (statusLower) {
       case "open":
         return (
           <svg
@@ -97,6 +160,7 @@ const GateControlModal = ({ onClose, userRole }) => {
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
           </svg>
         );
+      case "close":
       case "closed":
         return (
           <svg
@@ -188,13 +252,44 @@ const GateControlModal = ({ onClose, userRole }) => {
                 Current role: <span className="font-medium">{userRole}</span>
               </p>
             </div>
+          ) : isLoading ? (
+            <div className="text-center py-12">
+              <svg
+                className="animate-spin h-12 w-12 text-blue-600 mx-auto mb-4"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              <p className="text-gray-600">Loading gates...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-red-600 mb-4">{error}</p>
+              <button onClick={fetchGates} className="btn-primary">
+                Retry
+              </button>
+            </div>
           ) : (
             <>
               {/* Gate Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {gates.map((gate) => (
                   <motion.div
-                    key={gate.id}
+                    // key={gate.id || gate.gate_name}
+                    key={gate.gate_name}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
@@ -203,46 +298,65 @@ const GateControlModal = ({ onClose, userRole }) => {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h3 className="text-lg font-medium text-gray-900">
-                          {gate.name}
+                          {gate.name || gate.gate_name}
                         </h3>
-                        <p className="text-sm text-gray-600">{gate.id}</p>
+                        <p className="text-sm text-gray-600">
+                          {/* {gate.id || gate.gate_name} */}
+                          {gate.gate_name}
+                        </p>
                       </div>
-                      {getStatusIcon(gate.status)}
+                      {getStatusIcon(gate.status || gate.gate_status)}
                     </div>
 
                     <div className="mb-4">
                       <span
                         className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                          gate.status
+                          gate.status || gate.gate_status
                         )}`}
                       >
-                        {gate.status.charAt(0).toUpperCase() +
-                          gate.status.slice(1)}
+                        {(gate.status || gate.gate_status || "unknown")
+                          .charAt(0)
+                          .toUpperCase() +
+                          (gate.status || gate.gate_status || "unknown")
+                            .slice(1)
+                            .toLowerCase()}
                       </span>
                     </div>
 
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => handleGateAction(gate.id, "open")}
+                        onClick={() =>
+                          // handleGateAction(gate.id || gate.gate_name, "open")
+                          handleGateAction(gate.gate_name, "open")
+                        }
                         disabled={
-                          gate.status === "open" ||
-                          gate.status === "maintenance" ||
+                          (gate.status || gate.gate_status)?.toLowerCase() ===
+                            "open" ||
+                          (gate.status || gate.gate_status)?.toLowerCase() ===
+                            "maintenance" ||
                           showConfirmation
                         }
                         className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                        aria-label={`Open ${gate.name}`}
+                        aria-label={`Open ${gate.name || gate.gate_name}`}
                       >
                         Open
                       </button>
                       <button
-                        onClick={() => handleGateAction(gate.id, "close")}
+                        onClick={() =>
+                          // handleGateAction(gate.id || gate.gate_name, "close")
+                          handleGateAction(gate.gate_name, "close")
+                        }
                         disabled={
-                          gate.status === "closed" ||
-                          gate.status === "maintenance" ||
+                          (gate.status || gate.gate_status)?.toLowerCase() ===
+                            "close" ||
+                          (gate.status || gate.gate_status)?.toLowerCase() ===
+                            "closed" ||
+                          (gate.status || gate.gate_status)?.toLowerCase() ===
+                            "maintenance" ||
                           showConfirmation
                         }
                         className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                        aria-label={`Close ${gate.name}`}
+                        aria-label={`Close ${gate.name || gate.gate_name}`}
                       >
                         Close
                       </button>
@@ -252,39 +366,41 @@ const GateControlModal = ({ onClose, userRole }) => {
               </div>
 
               {/* Emergency Actions */}
-              <div className="mt-8 p-6 bg-red-50 border border-red-200 rounded-lg">
-                <h3 className="text-lg font-medium text-red-900 mb-2">
-                  Emergency Actions
-                </h3>
-                <p className="text-sm text-red-700 mb-4">
-                  Use these controls only in emergency situations. All actions
-                  are logged and monitored.
-                </p>
-                <div className="flex flex-wrap gap-4">
-                  <button
-                    onClick={() => {
-                      setSelectedGate("ALL");
-                      setAction("open all");
-                      setShowConfirmation(true);
-                    }}
-                    disabled={showConfirmation}
-                    className="bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                  >
-                    Open All Gates
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSelectedGate("ALL");
-                      setAction("close all");
-                      setShowConfirmation(true);
-                    }}
-                    disabled={showConfirmation}
-                    className="bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                  >
-                    Close All Gates
-                  </button>
+              {userRole === "admin" && (
+                <div className="mt-8 p-6 bg-red-50 border border-red-200 rounded-lg">
+                  <h3 className="text-lg font-medium text-red-900 mb-2">
+                    Emergency Actions
+                  </h3>
+                  <p className="text-sm text-red-700 mb-4">
+                    Use these controls only in emergency situations. All actions
+                    are logged and monitored.
+                  </p>
+                  <div className="flex flex-wrap gap-4">
+                    <button
+                      onClick={() => {
+                        setSelectedGate("ALL");
+                        setAction("open all");
+                        setShowConfirmation(true);
+                      }}
+                      disabled={showConfirmation}
+                      className="bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                    >
+                      Open All Gates
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedGate("ALL");
+                        setAction("close all");
+                        setShowConfirmation(true);
+                      }}
+                      disabled={showConfirmation}
+                      className="bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                    >
+                      Close All Gates
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </>
           )}
         </div>
@@ -374,6 +490,7 @@ const GateControlModal = ({ onClose, userRole }) => {
 GateControlModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   userRole: PropTypes.string.isRequired,
+  token: PropTypes.string.isRequired, // Tambahkan token prop
 };
 
 export default GateControlModal;

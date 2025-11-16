@@ -350,6 +350,7 @@ const Dashboard = ({ user, onLogout }) => {
         <GateControlModal
           onClose={() => setShowGateControl(false)}
           userRole={user.role}
+          token={user.token}
         />
       )}
     </div>
