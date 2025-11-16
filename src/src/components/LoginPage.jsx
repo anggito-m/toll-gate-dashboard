@@ -13,15 +13,33 @@ const LoginPage = ({ onLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
+
+  //   try {
+  //     await onLogin(formData);
+  //   } catch (error) {
+  //     console.error("Login error:", error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  // Di LoginPage.jsx
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
+      console.log("LoginPage: Memanggil onLogin");
       await onLogin(formData);
+      console.log("LoginPage: Login berhasil");
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("LoginPage: Login error caught:", error);
+      // Error sudah di-handle di App.jsx
     } finally {
+      console.log("LoginPage: Set isLoading false");
       setIsLoading(false);
     }
   };
@@ -69,7 +87,6 @@ const LoginPage = ({ onLogin }) => {
               Welcome back! Select method to login.
             </p>
           </div>
-
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label
@@ -195,7 +212,16 @@ const LoginPage = ({ onLogin }) => {
               )}
             </button>
           </form>
-
+          <button
+            onClick={() => {
+              console.log("Test button clicked");
+              console.log("onLogin:", onLogin);
+              onLogin({ username: "test", password: "test" });
+            }}
+            className="mt-4 bg-red-500 text-white px-4 py-2"
+          >
+            TEST LOGIN DIRECT
+          </button>
           <div className="mt-8 text-center">
             <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
               <a href="#" className="hover:text-gray-700">

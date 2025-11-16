@@ -20,7 +20,7 @@ const ManualInputModal = ({ onClose, onSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   // State untuk menyimpan error dari API
   const [apiError, setApiError] = useState(null);
-  const gates = ["GATE-001", "GATE-002", "GATE-003", "GATE-004", "GATE-005"];
+  const gates = ["GATE-001"];
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {

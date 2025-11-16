@@ -160,17 +160,19 @@ const LogDetailModal = ({ log, onClose }) => {
                 <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                   <div className="flex justify-between">
                     <span className="text-sm font-medium text-gray-600">
-                      Vehicle ID:
+                      Vehicle Number:
                     </span>
                     <span className="text-sm text-gray-900">
-                      {log.vehicleId}
+                      {log.nomorKendaraan}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm font-medium text-gray-600">
                       Gate ID:
                     </span>
-                    <span className="text-sm text-gray-900">{log.gateId}</span>
+                    <span className="text-sm text-gray-900">
+                      {log.gateName}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm font-medium text-gray-600">
@@ -183,33 +185,33 @@ const LogDetailModal = ({ log, onClose }) => {
                 </div>
               </div>
 
-              {/* Dimensions */}
+              {/* Dimensions Uji Kir */}
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-3">
-                  Dimensions
+                  Pengukuran Uji KIR
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-gray-50 rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-gray-900">
-                      {log.dimensions.length}m
+                      {log.uji_kir.length}cm
                     </div>
                     <div className="text-sm text-gray-600">Length</div>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-gray-900">
-                      {log.dimensions.width}m
+                      {log.uji_kir.width}cm
                     </div>
                     <div className="text-sm text-gray-600">Width</div>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-gray-900">
-                      {log.dimensions.height}m
+                      {log.uji_kir.height}cm
                     </div>
                     <div className="text-sm text-gray-600">Height</div>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-gray-900">
-                      {log.weight}t
+                      {log.uji_kir.weight}kg
                     </div>
                     <div className="text-sm text-gray-600">Weight</div>
                   </div>
@@ -250,7 +252,7 @@ const LogDetailModal = ({ log, onClose }) => {
                     </span>
                     <div className="flex items-center space-x-2">
                       <span className="text-sm text-gray-900">
-                        {log.sensorReadings.weightSensor}t
+                        {log.sensorReadings.weight}kg
                       </span>
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     </div>
@@ -261,7 +263,7 @@ const LogDetailModal = ({ log, onClose }) => {
                     </span>
                     <div className="flex items-center space-x-2">
                       <span className="text-sm text-gray-900">
-                        {log.sensorReadings.heightSensor}m
+                        {log.sensorReadings.height}cm
                       </span>
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     </div>
@@ -272,7 +274,7 @@ const LogDetailModal = ({ log, onClose }) => {
                     </span>
                     <div className="flex items-center space-x-2">
                       <span className="text-sm text-gray-900">
-                        {log.sensorReadings.lengthSensor}m
+                        {log.sensorReadings.length}cm
                       </span>
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     </div>
@@ -283,7 +285,7 @@ const LogDetailModal = ({ log, onClose }) => {
                     </span>
                     <div className="flex items-center space-x-2">
                       <span className="text-sm text-gray-900">
-                        {log.sensorReadings.widthSensor}m
+                        {log.sensorReadings.width}cm
                       </span>
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     </div>
@@ -330,9 +332,24 @@ LogDetailModal.propTypes = {
   log: PropTypes.shape({
     id: PropTypes.number.isRequired,
     timestamp: PropTypes.string.isRequired,
-    gateId: PropTypes.string,
+    gateName: PropTypes.string,
     vehicleId: PropTypes.string.isRequired,
-    dimensions: PropTypes.shape({
+    nomorKendaraan: PropTypes.string,
+    uji_kir: PropTypes.shape({
+      length: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
+      width: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
+      height: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
+      weight: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        .isRequired,
+    }).isRequired,
+    status: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.arrayOf(PropTypes.string),
+    ]).isRequired,
+    classDimensions: PropTypes.shape({
       length: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
         .isRequired,
       width: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
@@ -340,21 +357,14 @@ LogDetailModal.propTypes = {
       height: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
         .isRequired,
     }).isRequired,
-    weight: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
-      .isRequired,
-    status: PropTypes.oneOfType([
-      PropTypes.string,
-      PropTypes.arrayOf(PropTypes.string),
-    ]).isRequired,
-    photos: PropTypes.arrayOf(PropTypes.string).isRequired,
     sensorReadings: PropTypes.shape({
-      weightSensor: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+      weight: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
         .isRequired,
-      heightSensor: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+      length: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
         .isRequired,
-      lengthSensor: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+      width: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
         .isRequired,
-      widthSensor: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+      height: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
         .isRequired,
     }).isRequired,
   }).isRequired,

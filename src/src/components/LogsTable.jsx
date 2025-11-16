@@ -13,8 +13,8 @@ const LogsTable = ({ logs, onLogClick }) => {
 
   // --- Filtering ---
   const filteredLogs = logs.filter((log) => {
-    const vehicleId = log.vehicleId?.toLowerCase() || "";
-    const gateId = log.gateId?.toLowerCase() || "";
+    const nomorKendaraan = log.nomorKendaraan?.toLowerCase() || "";
+    const gateName = log.gateName?.toLowerCase() || "";
     const statuses = Array.isArray(log.status)
       ? log.status.map((s) => s?.toLowerCase() || "")
       : [];
@@ -22,8 +22,8 @@ const LogsTable = ({ logs, onLogClick }) => {
     const search = searchTerm.toLowerCase();
 
     return (
-      vehicleId.includes(search) ||
-      gateId.includes(search) ||
+      nomorKendaraan.includes(search) ||
+      gateName.includes(search) ||
       statuses.some((s) => s.includes(search))
     );
   });
@@ -182,10 +182,10 @@ const LogsTable = ({ logs, onLogClick }) => {
             <tr>
               {[
                 { label: "Timestamp", field: "timestamp" },
-                { label: "Gate ID", field: "gateId" },
-                { label: "Vehicle ID", field: "vehicleId" },
+                { label: "Gate Name", field: "gateName" },
+                { label: "Nomor Kendaraan", field: "nomorKendaraan" },
                 { label: "Dimensions (L×W×H)", field: null },
-                { label: "Weight (t)", field: "weight" },
+                { label: "Weight (Kg)", field: "weight" },
                 { label: "Status", field: "status" },
               ].map((col, idx) => (
                 <th
@@ -233,27 +233,27 @@ const LogsTable = ({ logs, onLogClick }) => {
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => e.key === "Enter" && onLogClick(log)}
-                aria-label={`View details for vehicle ${log.vehicleId}`}
+                aria-label={`View details for vehicle ${log.nomorKendaraan}`}
               >
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {log.timestamp}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {log.gateId}
+                  {log.gateName}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {log.vehicleId}
+                  {log.nomorKendaraan}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {log?.dimensions?.length &&
-                  log?.dimensions?.width &&
-                  log?.dimensions?.height
-                    ? `${log.dimensions.length}×${log.dimensions.width}×${log.dimensions.height}m`
+                  {log?.sensorReadings?.length &&
+                  log?.sensorReadings?.width &&
+                  log?.sensorReadings?.height
+                    ? `${log.sensorReadings.length}×${log.sensorReadings.width}×${log.sensorReadings.height}m`
                     : "N/A"}
                 </td>
 
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {log.weight}
+                  {log.sensorReadings.weight || "N/A"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {getStatusBadge(log.status)}
@@ -265,7 +265,7 @@ const LogsTable = ({ logs, onLogClick }) => {
                       onLogClick(log);
                     }}
                     className="text-blue-600 hover:text-blue-900 focus:outline-none focus:underline"
-                    aria-label={`View details for ${log.vehicleId}`}
+                    aria-label={`View details for ${log.nomorKendaraan}`}
                   >
                     View Details
                   </button>
@@ -323,9 +323,24 @@ LogsTable.propTypes = {
     PropTypes.shape({
       id: PropTypes.number.isRequired,
       timestamp: PropTypes.string.isRequired,
-      gateId: PropTypes.string,
+      gateName: PropTypes.string,
       vehicleId: PropTypes.string.isRequired,
-      dimensions: PropTypes.shape({
+      nomorKendaraan: PropTypes.string,
+      uji_kir: PropTypes.shape({
+        length: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+          .isRequired,
+        width: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+          .isRequired,
+        height: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+          .isRequired,
+        weight: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+          .isRequired,
+      }).isRequired,
+      status: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.arrayOf(PropTypes.string),
+      ]).isRequired,
+      classDimensions: PropTypes.shape({
         length: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
           .isRequired,
         width: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
@@ -333,13 +348,17 @@ LogsTable.propTypes = {
         height: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
           .isRequired,
       }).isRequired,
-      weight: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
-        .isRequired,
-      status: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.arrayOf(PropTypes.string),
-      ]).isRequired,
-    })
+      sensorReadings: PropTypes.shape({
+        weight: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+          .isRequired,
+        length: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+          .isRequired,
+        width: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+          .isRequired,
+        height: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+          .isRequired,
+      }).isRequired,
+    }).isRequired
   ).isRequired,
   onLogClick: PropTypes.func.isRequired,
 };

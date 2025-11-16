@@ -11,6 +11,7 @@ import LogDetailModal from "./LogDetailModal";
 import ManualInputModal from "./ManualInputModal";
 import GateControlModal from "./GateControlModal";
 import axios from "axios";
+import dayjs from "dayjs";
 
 // Fetch logs from server (replace with real API call if available)
 // const fetchLogs = async () => {
@@ -119,14 +120,28 @@ const calculateSummary = (logs) => {
 
   const totalVehicles = logs.length;
   const overloadOverdimensionCount = logs.filter((log) => {
-    const statuses = [].concat(log.status || []);
+    // pastikan log.status selalu berupa array
+    const statuses =
+      typeof log.status === "string"
+        ? log.status.split(",") // ubah jadi array ['Overload', 'Overdimension']
+        : [].concat(log.status || []);
+
     return statuses.includes("Overload") || statuses.includes("Overdimension");
   }).length;
+  const durations = logs.map((log) => {
+    const start = dayjs(log.waktu_mulai);
+    const end = dayjs(log.waktu_selesai);
+    return end.diff(start, "second"); // selisih dalam detik
+  });
+
+  // Hitung rata-ratas
+  const total = durations.reduce((a, b) => a + b, 0);
+  const avgProcessingTime = total / durations.length;
 
   return {
     activeGates: new Set(logs.map((log) => log.gateId)).size,
     overloadOverdimensionCount,
-    avgProcessingTime: "2.3s",
+    avgProcessingTime: avgProcessingTime > 0 ? `${avgProcessingTime}s` : "N/A",
     totalVehicles,
   };
 };
