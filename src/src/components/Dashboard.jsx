@@ -60,7 +60,7 @@ const calculateSummary = (logs) => {
 
   // Hitung rata-ratas
   const total = durations.reduce((a, b) => a + b, 0);
-  const avgProcessingTime = total / durations.length;
+  const avgProcessingTime = Math.round(total / durations.length * 100)/100;
 
   return {
     activeGates: new Set(logs.map((log) => log.gateId)).size,

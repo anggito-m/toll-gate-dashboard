@@ -245,10 +245,11 @@ const LogsTable = ({ logs, onLogClick }) => {
                   {log.nomorKendaraan}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {log?.sensorReadings?.length &&
-                  log?.sensorReadings?.width &&
-                  log?.sensorReadings?.height
-                    ? `${log.sensorReadings.length}×${log.sensorReadings.width}×${log.sensorReadings.height}m`
+                  {
+ log.sensorReadings.length != null &&
+ log.sensorReadings.width != null &&
+ log.sensorReadings.height != null
+                    ? `${log.sensorReadings.length}×${log.sensorReadings.width}×${log.sensorReadings.height}cm`
                     : "N/A"}
                 </td>
 
