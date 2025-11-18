@@ -25,67 +25,107 @@ export default function Page() {
 
   const handleLogin = async (loginData) => {
     try {
-      console.log("=== MULAI LOGIN ===");
-
       const res = await axios.post(
         `${import.meta.env.VITE_SERVER_ENDPOINT}/auth/login`,
         {
           username: loginData.username,
           password: loginData.password,
+          rememberMe: loginData.rememberMe, // ✅ Kirim rememberMe
         }
       );
-      console.log("Username:", loginData.username);
-      console.log("Password:", loginData.password);
-
-      console.log("Response status:", res.status);
-      console.log("Response data:", res.data);
-
-      // Validasi response
-      if (!res.data || !res.data.token) {
-        console.log("Response tidak valid!");
-        throw new Error("Invalid response from server");
-      }
 
       const token = res.data.token;
+
+      // ✅ Simpan berdasarkan rememberMe
+      if (loginData.rememberMe) {
+        // Remember Me: Simpan di localStorage (persistent)
+        localStorage.setItem("authToken", token);
+        localStorage.setItem("rememberMe", "true");
+      } else {
+        // Tidak Remember Me: Simpan di sessionStorage (hilang saat browser ditutup)
+        sessionStorage.setItem("authToken", token);
+        localStorage.removeItem("rememberMe");
+      }
+
+      // Set token ke axios headers
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
       setMessage("Login berhasil!");
       setStatus("success");
 
       const userAuth = {
-        username: loginData.username,
-        token: token,
+        username: res.data.username,
         email: res.data.email,
-        role: "admin"
+        role: res.data.role,
+        token: token,
       };
 
-      console.log("Setting user:", userAuth);
       setUser(userAuth);
-
-      // Return success
-      return { success: true };
     } catch (err) {
-      console.log("=== ERROR LOGIN ===");
-      console.error("Full error:", err);
-      console.error("Error response:", err.response);
-
+      console.error("Login error:", err);
       const errorMessage =
         err.response?.data?.error || err.message || "Terjadi kesalahan";
       setMessage("Login gagal: " + errorMessage);
       setStatus("error");
 
-      // PENTING: Pastikan user null saat error
       setUser(null);
-
-      // Throw error agar LoginPage tahu
       throw err;
     }
   };
 
-
   const handleLogout = () => {
+    // Hapus token dari kedua storage
+    localStorage.removeItem("authToken");
+    sessionStorage.removeItem("authToken");
+    localStorage.removeItem("rememberMe");
+
+    // Hapus token dari axios headers
+    delete axios.defaults.headers.common["Authorization"];
+
+    // Reset user state
     setUser(null);
   };
+
+  useEffect(() => {
+    // Cek apakah ada remember me
+    const rememberMe = localStorage.getItem("rememberMe") === "true";
+
+    // Load token dari localStorage atau sessionStorage
+    const token = rememberMe
+      ? localStorage.getItem("authToken")
+      : sessionStorage.getItem("authToken");
+
+    if (!token) return;
+
+    // Set token ke axios
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_SERVER_ENDPOINT}/auth/me`
+        );
+
+        setUser({
+          username: res.data.user.username,
+          email: res.data.user.email,
+          role: res.data.user.role,
+          token: token,
+        });
+      } catch (err) {
+        console.log("Token invalid atau expired:", err);
+
+        // Hapus token yang invalid
+        localStorage.removeItem("authToken");
+        sessionStorage.removeItem("authToken");
+        localStorage.removeItem("rememberMe");
+
+        setUser(null);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     if (message) {

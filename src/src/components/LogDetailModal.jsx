@@ -3,8 +3,22 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { motion } from "framer-motion";
+import axios from "axios";
 
 const LogDetailModal = ({ log, onClose }) => {
+  const [isGenerating, setIsGenerating] = React.useState(false);
+  const [fileExists, setFileExists] = React.useState(false);
+
+  const rememberMe = localStorage.getItem("rememberMe") === "true";
+
+  // Load token dari localStorage atau sessionStorage
+  const token = rememberMe
+    ? localStorage.getItem("authToken")
+    : sessionStorage.getItem("authToken");
+
+  console.log("LogDetailModal log prop:", log);
+  console.log("authToken from localStorage:", token);
+
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -14,6 +28,75 @@ const LogDetailModal = ({ log, onClose }) => {
   const handleKeyDown = (e) => {
     if (e.key === "Escape") {
       onClose();
+    }
+  };
+
+  const handleGenerateReport = async (logData) => {
+    try {
+      setIsGenerating(true);
+
+      // Request generate report (atau ambil yang sudah ada)
+      const response = await axios.post(
+        `${import.meta.env.VITE_SERVER_ENDPOINT}/reports/generate`,
+        logData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const { file } = response.data;
+      setFileExists(file.exists);
+
+      // Download file
+      try {
+        const downloadResponse = await axios.get(
+          `${import.meta.env.VITE_SERVER_ENDPOINT}${file.path}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            responseType: "blob",
+            timeout: 5000, // 5 detik timeout
+          }
+        );
+
+        // Jika sampai sini, berarti axios berhasil download
+        const url = window.URL.createObjectURL(
+          new Blob([downloadResponse.data])
+        );
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", file.name);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+        alert(
+          file.exists
+            ? "Report sudah ada dan berhasil didownload!"
+            : "Report berhasil dibuat dan didownload!"
+        );
+      } catch (downloadError) {
+        // Error saat download bisa karena IDM interrupt atau timeout
+        // Tapi report tetap berhasil dibuat, jadi anggap sukses
+        console.warn(
+          "Download interrupted (possibly by IDM):",
+          downloadError.message
+        );
+        alert(
+          file.exists
+            ? "Report sudah ada dan siap didownload!"
+            : "Report berhasil dibuat! (Download mungkin diambil alih oleh IDM)"
+        );
+      }
+    } catch (error) {
+      console.error("Error generating report:", error);
+      alert("Gagal generate/download report");
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -303,13 +386,14 @@ const LogDetailModal = ({ log, onClose }) => {
             <button
               onClick={() => {
                 // Handle export functionality
-                console.log("Exporting log:", log);
+                handleGenerateReport(log);
               }}
+              disabled={isGenerating}
               className="btn-primary"
             >
-              Export Report
+              {isGenerating ? "Generating..." : "Export Report"}
             </button>
-            {(log.status.includes("Overload") ||
+            {/* {(log.status.includes("Overload") ||
               log.status.includes("Overdimension")) && (
               <button
                 onClick={() => {
@@ -320,7 +404,7 @@ const LogDetailModal = ({ log, onClose }) => {
               >
                 Flag for Review
               </button>
-            )}
+            )} */}
           </div>
         </div>
       </motion.div>

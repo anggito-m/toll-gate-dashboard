@@ -185,7 +185,7 @@ const LogsTable = ({ logs, onLogClick }) => {
                 { label: "Gate Name", field: "gateName" },
                 { label: "Nomor Kendaraan", field: "nomorKendaraan" },
                 { label: "Dimensions (L×W×H)", field: null },
-                { label: "Weight (Kg)", field: "weight" },
+                { label: "Weight (g)", field: "weight" },
                 { label: "Status", field: "status" },
               ].map((col, idx) => (
                 <th

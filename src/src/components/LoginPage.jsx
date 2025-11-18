@@ -3,6 +3,7 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
 import { motion } from "framer-motion";
+import logo from "../../public/Logo.svg";
 
 const LoginPage = ({ onLogin }) => {
   const [formData, setFormData] = useState({
@@ -67,7 +68,13 @@ const LoginPage = ({ onLogin }) => {
       >
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <img
+              src={logo}
+              alt="Logo"
+              className="w-28 h-28 text-blue-600 items-center justify-center mx-auto mb-4"
+              style={{ objectFit: "fill" }}
+            />
+            {/* <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
                 className="w-8 h-8 text-white"
                 fill="currentColor"
@@ -79,7 +86,7 @@ const LoginPage = ({ onLogin }) => {
                   fill="white"
                 />
               </svg>
-            </div>
+            </div> */}
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               Login to your Account
             </h1>
@@ -259,9 +266,15 @@ const LoginPage = ({ onLogin }) => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="relative"
           >
-            <div className="w-48 h-48 bg-blue-500/30 rounded-full flex items-center justify-center backdrop-blur-sm">
-              <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center shadow-lg">
-                <svg
+            <div className="w-96 h-96 bg-blue-500/30 rounded-full flex items-center justify-center backdrop-blur-sm">
+              <div className="w-72 h-72 bg-white rounded-full flex items-center justify-center shadow-lg">
+                <img
+                  src={logo}
+                  alt="Logo"
+                  className="w-96 h-96 text-blue-600"
+                  style={{ objectFit: "fill" }}
+                />
+                {/* <svg
                   className="w-16 h-16 text-blue-600"
                   fill="currentColor"
                   viewBox="0 0 86 86"
@@ -271,7 +284,7 @@ const LoginPage = ({ onLogin }) => {
                     d="M0 13.4375C0 6.01328 6.01328 0 13.4375 0H72.5625C79.9867 0 86 6.01328 86 13.4375V61.8125C86 66.2133 83.8836 70.1102 80.625 72.5625V80.625C80.625 83.598 78.223 86 75.25 86H69.875C66.902 86 64.5 83.598 64.5 80.625V75.25H21.5V80.625C21.5 83.598 19.098 86 16.125 86H10.75C7.77695 86 5.375 83.598 5.375 80.625V72.5625C2.11641 70.1102 0 66.2133 0 61.8125V13.4375ZM21.8191 25.5648L18.8125 37.625H67.1875L64.1809 25.5648C63.5762 23.1797 61.4262 21.5 58.957 21.5H27.043C24.5738 21.5 22.4238 23.1797 21.8359 25.5648H21.8191ZM21.5 53.75C21.5 52.3245 20.9337 50.9573 19.9257 49.9493C18.9177 48.9413 17.5505 48.375 16.125 48.375C14.6995 48.375 13.3323 48.9413 12.3243 49.9493C11.3163 50.9573 10.75 52.3245 10.75 53.75C10.75 55.1755 11.3163 56.5427 12.3243 57.5507C13.3323 58.5587 14.6995 59.125 16.125 59.125C17.5505 59.125 18.9177 58.5587 19.9257 57.5507C20.9337 56.5427 21.5 55.1755 21.5 53.75ZM69.875 59.125C71.3005 59.125 72.6677 58.5587 73.6757 57.5507C74.6837 56.5427 75.25 55.1755 75.25 53.75C75.25 52.3245 74.6837 50.9573 73.6757 49.9493C72.6677 48.9413 71.3005 48.375 69.875 48.375C68.4495 48.375 67.0823 48.9413 66.0743 49.9493C65.0663 50.9573 64.5 52.3245 64.5 53.75C64.5 55.1755 65.0663 56.5427 66.0743 57.5507C67.0823 58.5587 68.4495 59.125 69.875 59.125Z"
                     fill="#0666F9"
                   />
-                </svg>
+                </svg> */}
               </div>
             </div>
           </motion.div>

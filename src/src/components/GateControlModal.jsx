@@ -286,83 +286,90 @@ const GateControlModal = ({ onClose, userRole, token }) => {
             <>
               {/* Gate Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {gates.map((gate) => (
-                  <motion.div
-                    // key={gate.id || gate.gate_name}
-                    key={gate.gate_name}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="card p-6"
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="text-lg font-medium text-gray-900">
-                          {gate.name || gate.gate_name}
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          {/* {gate.id || gate.gate_name} */}
-                          {gate.gate_name}
-                        </p>
+                {[...gates]
+                  .sort((a, b) => Number(a.gate_id) - Number(b.gate_id))
+                  .filter(
+                    (gate) =>
+                      (gate.name || gate.gate_name)?.toLowerCase() !==
+                      "manual entry"
+                  )
+                  .map((gate) => (
+                    <motion.div
+                      // key={gate.id || gate.gate_name}
+                      key={gate.gate_id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="card p-6"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h3 className="text-lg font-medium text-gray-900">
+                            {gate.name || gate.gate_name}
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            {/* {gate.id || gate.gate_name} */}
+                            {gate.gate_id}
+                          </p>
+                        </div>
+                        {getStatusIcon(gate.status || gate.gate_status)}
                       </div>
-                      {getStatusIcon(gate.status || gate.gate_status)}
-                    </div>
 
-                    <div className="mb-4">
-                      <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                          gate.status || gate.gate_status
-                        )}`}
-                      >
-                        {(gate.status || gate.gate_status || "unknown")
-                          .charAt(0)
-                          .toUpperCase() +
-                          (gate.status || gate.gate_status || "unknown")
-                            .slice(1)
-                            .toLowerCase()}
-                      </span>
-                    </div>
+                      <div className="mb-4">
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                            gate.status || gate.gate_status
+                          )}`}
+                        >
+                          {(gate.status || gate.gate_status || "unknown")
+                            .charAt(0)
+                            .toUpperCase() +
+                            (gate.status || gate.gate_status || "unknown")
+                              .slice(1)
+                              .toLowerCase()}
+                        </span>
+                      </div>
 
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() =>
-                          // handleGateAction(gate.id || gate.gate_name, "open")
-                          handleGateAction(gate.gate_name, "open")
-                        }
-                        disabled={
-                          (gate.status || gate.gate_status)?.toLowerCase() ===
-                            "open" ||
-                          (gate.status || gate.gate_status)?.toLowerCase() ===
-                            "maintenance" ||
-                          showConfirmation
-                        }
-                        className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                        aria-label={`Open ${gate.name || gate.gate_name}`}
-                      >
-                        Open
-                      </button>
-                      <button
-                        onClick={() =>
-                          // handleGateAction(gate.id || gate.gate_name, "close")
-                          handleGateAction(gate.gate_name, "close")
-                        }
-                        disabled={
-                          (gate.status || gate.gate_status)?.toLowerCase() ===
-                            "close" ||
-                          (gate.status || gate.gate_status)?.toLowerCase() ===
-                            "closed" ||
-                          (gate.status || gate.gate_status)?.toLowerCase() ===
-                            "maintenance" ||
-                          showConfirmation
-                        }
-                        className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                        aria-label={`Close ${gate.name || gate.gate_name}`}
-                      >
-                        Close
-                      </button>
-                    </div>
-                  </motion.div>
-                ))}
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() =>
+                            // handleGateAction(gate.id || gate.gate_name, "open")
+                            handleGateAction(gate.gate_id, "open")
+                          }
+                          disabled={
+                            (gate.status || gate.gate_status)?.toLowerCase() ===
+                              "open" ||
+                            (gate.status || gate.gate_status)?.toLowerCase() ===
+                              "maintenance" ||
+                            showConfirmation
+                          }
+                          className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                          aria-label={`Open ${gate.name || gate.gate_name}`}
+                        >
+                          Open
+                        </button>
+                        <button
+                          onClick={() =>
+                            // handleGateAction(gate.id || gate.gate_name, "close")
+                            handleGateAction(gate.gate_id, "close")
+                          }
+                          disabled={
+                            (gate.status || gate.gate_status)?.toLowerCase() ===
+                              "close" ||
+                            (gate.status || gate.gate_status)?.toLowerCase() ===
+                              "closed" ||
+                            (gate.status || gate.gate_status)?.toLowerCase() ===
+                              "maintenance" ||
+                            showConfirmation
+                          }
+                          className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                          aria-label={`Close ${gate.name || gate.gate_name}`}
+                        >
+                          Close
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))}
               </div>
 
               {/* Emergency Actions */}

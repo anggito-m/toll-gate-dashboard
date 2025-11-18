@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { motion, press } from "framer-motion";
 import TopNavigation from "./TopNavigation";
@@ -10,87 +10,11 @@ import MapPlaceholder from "./MapPlaceholder";
 import LogDetailModal from "./LogDetailModal";
 import ManualInputModal from "./ManualInputModal";
 import GateControlModal from "./GateControlModal";
+import { getWebSocket } from "../../utils/ws.js";
 import axios from "axios";
 import dayjs from "dayjs";
 
-// Fetch logs from server (replace with real API call if available)
-// const fetchLogs = async () => {
-//   try {
-//     const response = await axios.get(
-//       `${process.env.SERVER_ENDPOINT}/api/logs/recent`
-//     );
-//     return response.data.logs;
-//   } catch (error) {
-//     console.error("Error fetching logs:", error);
-//     return [];
-//   }
-// };
-
-// Mock data
-const mockLogs = [
-  // {
-  //   id: 1,
-  //   timestamp: "2024-01-15 14:30:25",
-  //   gateId: "GATE-001",
-  //   vehicleId: "ABC-123",
-  //   dimensions: { length: 12.5, width: 2.5, height: 3.2 },
-  //   weight: 15.5,
-  //   status: "OK",
-  //   photos: ["/truck-front-view.jpg"],
-  //   sensorReadings: {
-  //     weightSensor: 15.5,
-  //     heightSensor: 3.2,
-  //     lengthSensor: 12.5,
-  //     widthSensor: 2.5,
-  //   },
-  // },
-  // {
-  //   id: 2,
-  //   timestamp: "2024-01-15 14:28:15",
-  //   gateId: "GATE-002",
-  //   vehicleId: "XYZ-789",
-  //   dimensions: { length: 18.2, width: 2.8, height: 4.1 },
-  //   weight: 25.8,
-  //   status: "Overload",
-  //   photos: ["/overloaded-truck.jpg"],
-  //   sensorReadings: {
-  //     weightSensor: 25.8,
-  //     heightSensor: 4.1,
-  //     lengthSensor: 18.2,
-  //     widthSensor: 2.8,
-  //   },
-  // },
-  // {
-  //   id: 3,
-  //   timestamp: "2024-01-15 14:25:45",
-  //   gateId: "GATE-003",
-  //   vehicleId: "DEF-456",
-  //   dimensions: { length: 22.0, width: 3.5, height: 3.8 },
-  //   weight: 18.2,
-  //   status: "Overdimension",
-  //   photos: ["/oversized-truck.jpg"],
-  //   sensorReadings: {
-  //     weightSensor: 18.2,
-  //     heightSensor: 3.8,
-  //     lengthSensor: 22.0,
-  //     widthSensor: 3.5,
-  //   },
-  // },
-];
-// const calculateSummary = (logs) => {
-//   const totalVehicles = logs.length;
-//   const overloadOverdimensionCount = logs.filter((log) => {
-//     const statuses = [].concat(log.status || []);
-
-//     return statuses.includes("Overload") || statuses.includes("Overdimension");
-//   }).length;
-//   return {
-//     activeGates: new Set(logs.map((log) => log.gateId)).size, // unique gates
-//     overloadOverdimensionCount,
-//     avgProcessingTime: "2.3s", // keep this mocked unless you have real timing
-//     totalVehicles,
-//   };
-// };
+const mockLogs = [];
 
 const calculateSummary = (logs) => {
   // If logs is a string, try parsing
@@ -154,63 +78,130 @@ const Dashboard = ({ user, onLogout }) => {
   const [selectedLog, setSelectedLog] = useState(null);
   const [showManualInput, setShowManualInput] = useState(false);
   const [showGateControl, setShowGateControl] = useState(false);
+  const wsRef = useRef(null);
+  const reconnectRef = useRef({ timeoutId: null, interval: 1000 });
 
   // Connect to backend via WebSocket
   useEffect(() => {
-    const ws = new WebSocket(
-      window.location.protocol === "https:"
-        ? `${import.meta.env.VITE_WEBSOCKET_ENDPOINT}`
-        : "ws://localhost:3000"
-    );
+    console.log("WebSocket useEffect MOUNTED");
 
-    ws.onopen = () => {
-      console.log("Connected to WebSocket backend");
-    };
+    // jika sudah ada koneksi, jangan buat lagi
+    if (wsRef.current) {
+      console.log("WebSocket already exists, skipping creation");
+      return;
+    }
 
-    ws.onmessage = (event) => {
-      try {
-        const msg = JSON.parse(event.data);
+    const maxInterval = 10000;
 
-        if (msg.type == "initial") {
-          const newLog = msg.data;
-          setLogs(newLog);
-          setSummary(calculateSummary(newLog));
-          console.log("Initial logs received via WebSocket:", newLog);
-          return newLog;
+    function connect() {
+      console.log("🔌 Connecting to WebSocket...");
+
+      const url =
+        window.location.protocol === "https:"
+          ? import.meta.env.VITE_WEBSOCKET_ENDPOINT
+          : "ws://localhost:3000";
+
+      const ws = new WebSocket(url);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        console.log("🟢 WebSocket connected");
+        // reset reconnect interval
+        reconnectRef.current.interval = 1000;
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+
+          if (msg.type === "initial") {
+            // msg.data diharapkan array
+            const initialLogs = Array.isArray(msg.data) ? msg.data : [msg.data];
+            setLogs(initialLogs);
+            setSummary(calculateSummary(initialLogs));
+            console.log("Initial logs received via WebSocket:", initialLogs);
+            return;
+          }
+
+          if (msg.type === "update") {
+            const newLog = Array.isArray(msg.data) ? msg.data[0] : msg.data;
+
+            if (!newLog) return;
+
+            // gunakan functional update yang aman: pastikan prev array
+            setLogs((prev) => {
+              const prevArr = Array.isArray(prev) ? prev : [];
+
+              // cegah duplicate berdasarkan id (atau properti unik lain)
+              const exists = prevArr.some((r) => r.id === newLog.id);
+              if (exists) {
+                return prevArr;
+              }
+
+              const next = [...prevArr, newLog];
+
+              // update summary segera berdasarkan next array
+              setSummary(calculateSummary(next));
+
+              return next;
+            });
+          }
+        } catch (err) {
+          console.error("WS JSON parse error:", err, "raw:", event.data);
         }
+      };
 
-        if (msg.type == "update") {
-          const newLog = msg.data[0];
-          console.log("New log received via WebSocket:", newLog);
-          setLogs((prev) =>
-            Array.isArray(prev) ? [...prev, newLog] : [newLog]
-          );
+      ws.onclose = (ev) => {
+        console.warn("🔴 WebSocket disconnected:", ev.reason || ev.code);
+        wsRef.current = null;
+        attemptReconnect();
+      };
 
-          setSummary((prev) => ({
-            ...calculateSummary([newLog, ...logs]),
-            totalVehicles: prev.totalVehicles + 1,
-            overloadOverdimensionCount:
-              newLog.status === "Overload" || newLog.status === "Overdimension"
-                ? prev.overloadOverdimensionCount + 1
-                : prev.overloadOverdimensionCount,
-          }));
+      ws.onerror = (error) => {
+        console.error("⚠️ WebSocket error:", error);
+        // close socket to trigger onclose & reconnect logic
+        try {
+          ws.close();
+        } catch (e) {
+          /* ignore */
         }
+      };
+    }
 
-        // How many vehicle in logs
-        console.log("Total Vehicles:", logs.length);
-        console.log("Current Summary:", summary);
-      } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
-      }
-    };
-    ws.onclose = () => {
-      console.log("WebSocket connection closed");
-    };
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
+    function attemptReconnect() {
+      clearTimeout(reconnectRef.current.timeoutId);
+
+      const wait = reconnectRef.current.interval;
+      console.log(`Reconnecting in ${wait} ms...`);
+
+      reconnectRef.current.timeoutId = setTimeout(() => {
+        reconnectRef.current.interval = Math.min(
+          Math.floor(reconnectRef.current.interval * 1.5),
+          maxInterval
+        );
+        connect();
+      }, wait);
+    }
+
+    // konek pertama kali
+    connect();
+
+    // cleanup saat unmount
     return () => {
-      ws.close();
+      console.log("Cleanup: closing WS and clearing reconnect");
+      clearTimeout(reconnectRef.current.timeoutId);
+      if (wsRef.current) {
+        try {
+          wsRef.current.onopen = null;
+          wsRef.current.onmessage = null;
+          wsRef.current.onclose = null;
+          wsRef.current.onerror = null;
+          wsRef.current.close();
+        } catch (e) {
+          /* ignore */
+        }
+        wsRef.current = null;
+      }
     };
   }, []);
   // // Simulate real-time updates
@@ -289,7 +280,7 @@ const Dashboard = ({ user, onLogout }) => {
       },
     };
 
-    setLogs((prev) => [newLog, ...prev]);
+    // setLogs((prev) => [newLog, ...prev]);
     setShowManualInput(false);
   };
 
