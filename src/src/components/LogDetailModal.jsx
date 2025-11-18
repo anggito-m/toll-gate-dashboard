@@ -294,7 +294,7 @@ const LogDetailModal = ({ log, onClose }) => {
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-gray-900">
-                      {log.uji_kir.weight}kg
+                      {log.uji_kir.weight}g
                     </div>
                     <div className="text-sm text-gray-600">Weight</div>
                   </div>
@@ -335,7 +335,7 @@ const LogDetailModal = ({ log, onClose }) => {
                     </span>
                     <div className="flex items-center space-x-2">
                       <span className="text-sm text-gray-900">
-                        {log.sensorReadings.weight}kg
+                        {log.sensorReadings.weight}g
                       </span>
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     </div>
