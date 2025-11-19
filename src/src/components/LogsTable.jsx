@@ -254,7 +254,7 @@ const LogsTable = ({ logs, onLogClick }) => {
                 </td>
 
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {log.sensorReadings.weight || "N/A"}
+                  {log.sensorReadings.weight != null ? log.sensorReadings.weight : "N/A"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {getStatusBadge(log.status)}
